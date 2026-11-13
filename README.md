@@ -1,150 +1,168 @@
 <!--
   Project documentation for Xiaomi Redmi Note 11 4G (spes).
-  Keep the status honest: this project is experimental and not yet bootable.
+  Keep all build and hardware-support claims tied to verified results.
 -->
 
 <div align="center">
 
-# Linux Mainline for Redmi Note 11 4G
+# Linux Mainline on Redmi Note 11 4G
 
-**Bringing upstream Linux to the Xiaomi Redmi Note 11 4G — codename `spes`.**
-
-<p>
-  <img src="https://img.shields.io/badge/Platform-Qualcomm%20SM6225-2563eb?style=for-the-badge" alt="Platform: Qualcomm SM6225">
-  <img src="https://img.shields.io/badge/Architecture-ARM64-0f766e?style=for-the-badge" alt="Architecture: ARM64">
-  <img src="https://img.shields.io/badge/Status-Work%20in%20Progress-f59e0b?style=for-the-badge" alt="Status: Work in Progress">
-</p>
+### Porting upstream Linux to Xiaomi Redmi Note 11 4G — `spes`
 
 <p>
-  <a href="#project-goal">Project goal</a> ·
-  <a href="#device">Device</a> ·
-  <a href="#development-status">Status</a> ·
-  <a href="#roadmap">Roadmap</a> ·
-  <a href="#safety-notice">Safety</a>
+  <img src="https://img.shields.io/badge/Device-Redmi%20Note%2011%204G-2563eb?style=for-the-badge" alt="Device">
+  <img src="https://img.shields.io/badge/SoC-SM6225-0f766e?style=for-the-badge" alt="Qualcomm SM6225">
+  <img src="https://img.shields.io/badge/Architecture-ARM64-7c3aed?style=for-the-badge" alt="ARM64">
+  <img src="https://img.shields.io/badge/Kernel-7.3.0--rc4-0891b2?style=for-the-badge" alt="Linux 7.3.0-rc4">
+  <img src="https://img.shields.io/badge/Status-Experimental-orange?style=for-the-badge" alt="Experimental">
 </p>
+
+**An experimental device-enablement project. Not a daily-driver kernel or installable release.**
+
+[Project status](#-current-status) · [Device](#-target-device) · [Architecture](#-technical-approach) · [Roadmap](#-roadmap) · [Safety](#-safety-first)
 
 </div>
 
 ---
 
-## Project goal
+## 🎯 Project goal
 
-This project explores the work required to bring a **mainline Linux kernel** to the
-**Xiaomi Redmi Note 11 4G (`spes`)**. The long-term goal is to develop a maintainable
-device-specific kernel and, eventually, a usable Linux environment on the phone.
+This repository tracks the work to port **mainline Linux** to the **Xiaomi Redmi Note 11 4G (`spes`)**.
 
-This is an experimental hardware-enablement project. A successful kernel compilation
-or Device Tree compilation does **not** mean that the phone can boot it.
+The current integration target is **Evolution X based on Android 16**. This is a development goal—not a claim that upstream Linux can already boot Android 16 or replace the ROM's vendor kernel. Android userspace, Android boot image formats, device firmware, kernel interfaces and hardware drivers all need separate compatibility work.
 
-## Device
+The priority is to establish correct hardware support and a reproducible kernel build before attempting any device boot.
 
-| Item | Details |
+## 📱 Target device
+
+| Property | Target |
 |---|---|
 | Device | Xiaomi Redmi Note 11 4G |
 | Codename | `spes` |
-| SoC family | Qualcomm Snapdragon 680 |
+| SoC | Qualcomm Snapdragon 680 |
 | Platform | Qualcomm SM6225 |
-| CPU architecture | ARM64 |
-| Target | Mainline Linux |
+| Architecture | ARM64 |
+| Kernel family | Mainline Linux |
+| Current source version | **7.3.0-rc4** |
+| Android integration goal | Evolution X / Android 16 |
 
-> **Variant warning:** `spes` and related device variants must not be treated as
-> interchangeable. Device Tree, panel, touch, GPIO and regulator details must be
-> verified against the exact hardware before use.
+> **Variant matters:** Do not assume that `spes`, `spesn`, or another SM6225 device uses identical panels, touch controllers, GPIOs, regulators or firmware.
 
-## Development status
+## 🔎 Current status
 
 <details open>
-<summary><strong>Current stage — early bring-up</strong></summary>
+<summary><strong>Active development — kernel and device-tree bring-up</strong></summary>
 
-- [x] Set up the kernel development workspace and cross-compilation dependencies.
-- [x] Inspect the Xiaomi SM6225 vendor kernel and device-specific source.
-- [x] Prepare an initial Xiaomi `spes` Device Tree skeleton.
-- [x] Confirm that the initial Device Tree compiles.
-- [ ] Complete and verify the ARM64 kernel image build.
-- [ ] Validate the final kernel configuration for Android compatibility.
-- [ ] Bring up board-specific regulators, pinctrl and storage.
-- [ ] Enable display and touchscreen hardware.
-- [ ] Validate USB, charging, audio, sensors and other peripherals.
-- [ ] Test boot safely without writing to device partitions.
+| Item | Status |
+|---|---|
+| Mainline source branch | `xiaomi-spes-mainline` |
+| Source revision | `c545b9e890d723b5dd0beb6a7a067a0e16088e65` |
+| Kernel version | `7.3.0-rc4` |
+| ARM64 cross-compiler | GCC / AArch64 |
+| Kernel `Image` build | In progress; output not yet verified |
+| Device Tree source | Initial `sm6225-xiaomi-spes.dts` and related DTSI present |
+| Redmi Note 11 boot test | Not performed |
+| Evolution X Android 16 compatibility | Not established |
+| Flashable package | Not available |
 
-**Important:** The current Device Tree is a bring-up skeleton, not a complete,
-verified or boot-ready description of the phone. Hardware support is incomplete.
+### Verified work
+
+- [x] Mainline development source and cross-compilation workspace prepared.
+- [x] Xiaomi SM6225 vendor sources inspected as hardware reference.
+- [x] Initial `spes` Device Tree source added to the mainline tree.
+- [x] Mainline build started for `Image` and Device Tree targets.
+
+### Still pending
+
+- [ ] Complete the kernel `Image` build and inspect the final artifact.
+- [ ] Confirm that the `spes` DTB is selected and compiles successfully.
+- [ ] Validate board-level regulators, pinctrl, storage and interrupt mappings.
+- [ ] Bring up display, touchscreen, USB, charging, audio and sensors.
+- [ ] Investigate Android 16 / Evolution X kernel and boot-image integration.
+- [ ] Perform controlled boot testing with a verified recovery path.
 
 </details>
 
-## Roadmap
+> **Status is intentionally conservative:** compiling generic platform files or DTBs for other devices does not prove that the Redmi Note 11 DTB or kernel is ready.
 
-| Phase | Work | Goal |
-|---|---|---|
-| 1. Foundation | Mainline source, toolchain and build configuration | Reproducible builds |
-| 2. Device Tree | SoC and Xiaomi board description | Hardware described accurately |
-| 3. Core hardware | Regulators, pinctrl, UFS and USB | Basic platform bring-up |
-| 4. User interface | Display, panel and touchscreen | Usable screen and input |
-| 5. Peripherals | Audio, sensors, camera and power management | Broader device support |
-| 6. Validation | Boot tests, logs and regression checks | Reliable experimental image |
+## 🧩 Technical approach
 
-## Technical approach
+1. **Mainline first** — use upstream Linux and existing Qualcomm SM6225 support as the foundation.
+2. **Vendor tree as reference** — inspect Xiaomi's downstream kernel for board-specific hardware details; do not copy vendor code blindly.
+3. **Device-specific validation** — verify panel IDs, touch controller, GPIOs, regulators, clocks and firmware against the exact `spes` hardware.
+4. **Incremental bring-up** — enable and test one hardware subsystem at a time.
+5. **Android integration later** — evaluate Android-specific interfaces, modules, boot image layout and SELinux expectations only after the basic kernel and device tree are sound.
 
-- Use upstream Linux and existing SM6225 platform support as the foundation.
-- Refer to the Xiaomi vendor kernel to understand device-specific hardware.
-- Treat other SM6225 devices as references only; do not copy their board wiring blindly.
-- Verify GPIOs, regulators, panel identifiers and peripheral configuration against
-  device-specific firmware or hardware evidence.
-- Keep experimental changes isolated and document the reason for each change.
+### Main hardware challenges
 
-### Known bring-up challenges
+| Subsystem | Work required |
+|---|---|
+| Device Tree | Complete and validate the SM6225 / `spes` board description |
+| Display | Identify panel and implement a compatible display path |
+| Touch | Identify controller, GPIOs, interrupts and driver support |
+| Storage | Validate UFS controller, PHY, power rails and boot storage |
+| Power | Regulators, clocks, thermal and charging support |
+| Connectivity | USB, Wi-Fi, Bluetooth and related firmware |
+| Peripherals | Audio, sensors, camera and other device-specific components |
 
-- **Display:** The panel configuration and initialization sequence must be identified
-  and implemented for the exact device.
-- **Touchscreen:** The vendor tree includes a FocalTech touchscreen implementation;
-  compatible mainline support and correct GPIO assignments are still required.
-- **Storage:** UFS power rails and PHY/controller configuration need board-level
-  validation.
-- **Power and peripherals:** Regulators, pinctrl, USB, charging and other devices
-  must be brought up incrementally.
+## 🗺️ Roadmap
 
-## Build environment
+- [x] **Phase 0 — Workspace:** source, toolchain and initial build environment.
+- [ ] **Phase 1 — Kernel build:** produce and verify a complete ARM64 kernel image.
+- [ ] **Phase 2 — Device Tree:** complete and validate the `spes` DTB.
+- [ ] **Phase 3 — Core platform:** storage, regulators, pinctrl, clocks and USB.
+- [ ] **Phase 4 — User interface:** display and touchscreen.
+- [ ] **Phase 5 — Peripherals:** audio, sensors, camera, connectivity and power management.
+- [ ] **Phase 6 — Android integration:** assess Evolution X Android 16 compatibility.
+- [ ] **Phase 7 — Device testing:** controlled boot tests, logs and recovery validation.
 
-Development is organized around an ARM64 cross-compilation environment. Build
-instructions and scripts will be documented here as they become reproducible.
+## 🛠️ Build information
 
-Do not treat an intermediate build artifact as a release image. Before any device
-test, verify the kernel image, DTB, configuration, logs and recovery procedure.
+The current build is performed in an ARM64 cross-compilation environment.
 
-## Safety notice
+Expected primary outputs:
 
-> **Do not flash this experimental kernel to your phone at this stage.**
+- `Image` — uncompressed ARM64 kernel image.
+- `*.dtb` — compiled device tree blobs.
+- `*.dtbo` — device tree overlays, if required by the final device design.
 
-The project is not yet confirmed to boot on the Redmi Note 11 4G. Incorrect Device
-Tree data or incomplete hardware support can cause boot failure or loss of device
-functionality. Keep a known-good recovery path and make backups before any future
-device-level testing.
+A file existing in the build directory is not sufficient evidence of device compatibility. Each artifact must be checked for the correct target, configuration and source revision.
 
-No partition-writing or installation instructions are provided until a safe,
-verified test procedure is available.
+Build scripts and reproducible instructions will be documented here after they are verified against the current source tree.
 
-## Contributing
+## 🛡️ Safety first
 
-Testing, hardware research, documentation and carefully verified patches are welcome.
-When proposing a change, include:
+**Do not flash this project to your phone.**
 
-1. The exact device variant and hardware component.
-2. The source of the hardware information.
-3. Kernel version and commit used for testing.
-4. Build logs or boot logs, with personal information removed.
-5. A clear description of what was tested and what remains unverified.
+This port is experimental and has not been confirmed to boot on the Redmi Note 11 4G. An incomplete or incorrect kernel/Device Tree can cause a boot failure or loss of hardware functionality.
 
-## Disclaimer
+- Do not write to `boot`, `vendor_boot`, `dtbo` or other device partitions with experimental artifacts.
+- Keep the known-good Evolution X boot images and a tested recovery method.
+- Do not distribute a build as a working release until it has passed device-specific validation.
+- No installation or flashing instructions are provided at this stage.
 
-This project is independent and is not affiliated with, endorsed by or supported by
-Xiaomi or Qualcomm. All product and company names belong to their respective owners.
+## 🤝 Contributing
+
+Hardware research, documentation, testing and carefully reviewed patches are welcome.
+
+When submitting a change, include:
+
+1. Exact device variant (`spes`) and hardware component.
+2. Evidence or source for hardware-specific values.
+3. Kernel version and commit.
+4. Relevant build or boot logs, with personal data removed.
+5. What was actually tested and what remains unverified.
+
+## 📄 Disclaimer
+
+This is an independent community research project. It is not affiliated with, endorsed by or supported by Xiaomi, Qualcomm or Evolution X. All trademarks belong to their respective owners.
 
 ---
 
 <div align="center">
 
-**Experimental research • Upstream Linux • Xiaomi Redmi Note 11 4G**
+**MAINLINE LINUX · QUALCOMM SM6225 · REDMI NOTE 11 4G**
 
-<sub>Progress is measured by verified hardware support — not just a successful build.</sub>
+<sub>Build success is only one milestone. Verified hardware support is the real measure of progress.</sub>
 
 </div>
