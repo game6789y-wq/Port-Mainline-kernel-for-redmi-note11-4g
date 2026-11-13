@@ -61,8 +61,8 @@ The priority is to establish correct hardware support and a reproducible kernel 
 | Pinned source revision | [`c545b9e890d723b5dd0beb6a7a067a0e16088e65`](https://github.com/W-Floyd/linux/commit/c545b9e890d723b5dd0beb6a7a067a0e16088e65) |
 | Kernel version | `7.3.0-rc4` |
 | ARM64 cross-compiler | GCC / AArch64 |
-| Full `Image modules dtbs` build | In progress; final exit code not yet available |
-| Existing kernel `Image` | Stale output from 2026-11-13 13:38; not uploaded as a new build |
+| Full `Image modules dtbs` build | **Completed successfully — exit code 0** (2026-11-13 16:13 UTC) |
+| Kernel `Image` | Fresh build output from 2026-11-13 16:13 UTC; SHA-256 recorded below; not yet uploaded |
 | `spes` DTB | Compiled successfully; installed DTBO/overlay selection not verified |
 | FT3418 touchscreen module | Built with `W=1`; no on-device test |
 | FPC1020 platform module | Built with `W=1`; platform resources only; no SPI/TEE/HAL implementation or device test |
@@ -77,7 +77,7 @@ The priority is to establish correct hardware support and a reproducible kernel 
 - [x] Mainline development source and cross-compilation workspace prepared.
 - [x] Xiaomi SM6225 vendor sources inspected as hardware reference.
 - [x] Initial `spes` Device Tree source added to the mainline tree.
-- [x] Mainline build started for `Image` and Device Tree targets.
+- [x] Full `Image modules dtbs` build completed with exit code 0; no compiler/linker errors found in the build log.
 
 ### Built artifacts (experimental)
 
@@ -91,12 +91,12 @@ The following files were compiled and copied to [`prebuilt/experimental/`](prebu
 
 See [artifact README](prebuilt/experimental/README.md) for SHA-256 checksums and limitations.
 
-**Important:** the full `Image modules dtbs` build is still running. The `Image` currently present in the build directory is an older file and is deliberately not published as a new build. These artifacts have not been boot-tested and must not be flashed.
+**Latest build verification (2026-11-13 16:13 UTC):** full `Image modules dtbs` completed with exit code `0`. Kernel `Image` size: 54,770,176 bytes. SHA-256: `255ac9d2564056237c434b3051b342e990aee52fb4b062384a9d1d6b591be47e`. The DTB target also returned exit code `0`; its output was unchanged (62,144 bytes; SHA-256 `0d9bb6dd130003031f82503e632290ba14c51973cac4fedb5c4cfdd87f4c6cbe`). 1,679 `.ko` files are present in the build output tree. The fresh `Image` has not yet been uploaded to this repository. None of these outputs has been boot-tested; do not flash.
 
 ### Still pending
 
-- [ ] Finish the full `Image modules dtbs` build and verify its exit code.
-- [ ] Rebuild and verify a fresh kernel `Image`.
+- [x] Finish the full `Image modules dtbs` build and verify exit code `0`.
+- [x] Rebuild and record SHA-256 for the fresh kernel `Image`.
 - [ ] Confirm that the `spes` DTB is selected by the actual device and validate the overlay.
 - [ ] Validate board-level regulators, pinctrl, storage and interrupt mappings.
 - [ ] Complete display/DRM panel, Wi-Fi firmware/calibration, Bluetooth UART and charger integration.
@@ -106,7 +106,7 @@ See [artifact README](prebuilt/experimental/README.md) for SHA-256 checksums and
 
 </details>
 
-> **Status is intentionally conservative:** compiling generic platform files or DTBs for other devices does not prove that the Redmi Note 11 DTB or kernel is ready.
+> **Status is intentionally conservative:** a successful compile does not prove that the Redmi Note 11 DTB or kernel is ready to boot.
 
 ## 🧩 Technical approach
 
