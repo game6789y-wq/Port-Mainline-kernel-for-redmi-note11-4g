@@ -19,7 +19,7 @@
 
 **An experimental device-enablement project. Not a daily-driver kernel or installable release.**
 
-[Project status](#-current-status) · [Device](#-target-device) · [Architecture](#-technical-approach) · [Roadmap](#-roadmap) · [Safety](#-safety-first)
+[Project status](#-current-status) · [Device](#-target-device) · [Sources](#-source-code--credits) · [Roadmap](#-roadmap) · [Safety](#-safety-first)
 
 </div>
 
@@ -55,8 +55,10 @@ The priority is to establish correct hardware support and a reproducible kernel 
 
 | Item | Status |
 |---|---|
-| Mainline source branch | `xiaomi-spes-mainline` |
-| Source revision | `c545b9e890d723b5dd0beb6a7a067a0e16088e65` |
+| Mainline source repository | [W-Floyd/linux](https://github.com/W-Floyd/linux) |
+| Upstream source branch | `fogona-mainline` |
+| Local working branch | `xiaomi-spes-mainline` |
+| Pinned source revision | [`c545b9e890d723b5dd0beb6a7a067a0e16088e65`](https://github.com/W-Floyd/linux/commit/c545b9e890d723b5dd0beb6a7a067a0e16088e65) |
 | Kernel version | `7.3.0-rc4` |
 | ARM64 cross-compiler | GCC / AArch64 |
 | Kernel `Image` build | In progress; output not yet verified |
@@ -64,6 +66,8 @@ The priority is to establish correct hardware support and a reproducible kernel 
 | Redmi Note 11 boot test | Not performed |
 | Evolution X Android 16 compatibility | Not established |
 | Flashable package | Not available |
+
+**Source clarification:** the selected `fogona-mainline` branch is an SM6225 / Motorola Fogona mainline development base. It is being adapted for `spes`; it is not an already completed Redmi Note 11 mainline port.
 
 ### Verified work
 
@@ -116,6 +120,29 @@ The priority is to establish correct hardware support and a reproducible kernel 
 - [ ] **Phase 6 — Android integration:** assess Evolution X Android 16 compatibility.
 - [ ] **Phase 7 — Device testing:** controlled boot tests, logs and recovery validation.
 
+## 📚 Source code & credits
+
+This project uses a Mainline development base and separate device-specific repositories for hardware research. **These sources have different roles; reference repositories are not automatically code dependencies.**
+
+| Source | Purpose |
+|---|---|
+| [W-Floyd/linux — `fogona-mainline`](https://github.com/W-Floyd/linux/tree/fogona-mainline) | Current Mainline development base; pinned commit shown above |
+| [Linux kernel upstream](https://git.kernel.org/pub/scm/linux/kernel/git/torvalds/linux.git) | Official upstream kernel reference |
+| [Xiaomi Spes/n Devs](https://github.com/xiaomi-spes-devs) | Device-specific Android development resources |
+| [Xiaomi Spes/n kernel tree](https://github.com/xiaomi-spes-devs/android_kernel_xiaomi_spes) | Downstream kernel and hardware-driver research |
+| [sayann70 Android 16 kernel](https://github.com/sayann70/kernel_xiaomi_spes/tree/16) | Android 16 vendor-kernel comparison/reference |
+| [sayann70 device tree](https://github.com/sayann70/device_xiaomi_spes) | Redmi Note 11 device configuration reference |
+| [Linux kernel documentation](https://docs.kernel.org/) | Kernel development and driver documentation |
+
+See **[SOURCES.md](SOURCES.md)** for detailed provenance, pinned revision, reference roles and license notes.
+
+### Attribution & licensing
+
+- Preserve original copyright notices and license headers in all reused code.
+- Check the license of each source file and repository before copying or redistributing code.
+- The Linux kernel is primarily GPL-2.0-only; individual files may carry other compatible or separately stated licenses. Follow the license actually present in each file.
+- Hardware research references do not imply endorsement or authorship by their maintainers.
+
 ## 🛠️ Build information
 
 The current build is performed in an ARM64 cross-compilation environment.
@@ -155,7 +182,7 @@ When submitting a change, include:
 
 ## 📄 Disclaimer
 
-This is an independent community research project. It is not affiliated with, endorsed by or supported by Xiaomi, Qualcomm or Evolution X. All trademarks belong to their respective owners.
+This is an independent community research project. It is not affiliated with, endorsed by or supported by Xiaomi, Qualcomm, Evolution X or the maintainers of the referenced repositories. All trademarks belong to their respective owners.
 
 ---
 
