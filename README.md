@@ -61,8 +61,11 @@ The priority is to establish correct hardware support and a reproducible kernel 
 | Pinned source revision | [`c545b9e890d723b5dd0beb6a7a067a0e16088e65`](https://github.com/W-Floyd/linux/commit/c545b9e890d723b5dd0beb6a7a067a0e16088e65) |
 | Kernel version | `7.3.0-rc4` |
 | ARM64 cross-compiler | GCC / AArch64 |
-| Kernel `Image` build | In progress; output not yet verified |
-| Device Tree source | Initial `sm6225-xiaomi-spes.dts` and related DTSI present |
+| Full `Image modules dtbs` build | In progress; final exit code not yet available |
+| Existing kernel `Image` | Stale output from 2026-11-13 13:38; not uploaded as a new build |
+| `spes` DTB | Compiled successfully; installed DTBO/overlay selection not verified |
+| FT3418 touchscreen module | Built with `W=1`; no on-device test |
+| FPC1020 platform module | Built with `W=1`; platform resources only; no SPI/TEE/HAL implementation or device test |
 | Redmi Note 11 boot test | Not performed |
 | Evolution X Android 16 compatibility | Not established |
 | Flashable package | Not available |
@@ -76,12 +79,28 @@ The priority is to establish correct hardware support and a reproducible kernel 
 - [x] Initial `spes` Device Tree source added to the mainline tree.
 - [x] Mainline build started for `Image` and Device Tree targets.
 
+### Built artifacts (experimental)
+
+The following files were compiled and copied to [`prebuilt/experimental/`](prebuilt/experimental/). They are **individual build artifacts, not a complete kernel image or installation package**.
+
+| Artifact | Size | Build / test status |
+|---|---:|---|
+| [`focaltech-ft3418.ko`](prebuilt/experimental/focaltech-ft3418.ko) | 80,576 bytes | Module build with `W=1` and checkpatch passed; hardware not tested |
+| [`fpc1020-platform.ko`](prebuilt/experimental/fpc1020-platform.ko) | 99,448 bytes | Module build with `W=1` and checkpatch passed; platform resource layer only |
+| [`sm6225-xiaomi-spes.dtb`](prebuilt/experimental/sm6225-xiaomi-spes.dtb) | 62,144 bytes | DTB compilation passed; active device overlay not verified |
+
+See [artifact README](prebuilt/experimental/README.md) for SHA-256 checksums and limitations.
+
+**Important:** the full `Image modules dtbs` build is still running. The `Image` currently present in the build directory is an older file and is deliberately not published as a new build. These artifacts have not been boot-tested and must not be flashed.
+
 ### Still pending
 
-- [ ] Complete the kernel `Image` build and inspect the final artifact.
-- [ ] Confirm that the `spes` DTB is selected and compiles successfully.
+- [ ] Finish the full `Image modules dtbs` build and verify its exit code.
+- [ ] Rebuild and verify a fresh kernel `Image`.
+- [ ] Confirm that the `spes` DTB is selected by the actual device and validate the overlay.
 - [ ] Validate board-level regulators, pinctrl, storage and interrupt mappings.
-- [ ] Bring up display, touchscreen, USB, charging, audio and sensors.
+- [ ] Complete display/DRM panel, Wi-Fi firmware/calibration, Bluetooth UART and charger integration.
+- [ ] Bring up USB, audio and remaining sensors.
 - [ ] Investigate Android 16 / Evolution X kernel and boot-image integration.
 - [ ] Perform controlled boot testing with a verified recovery path.
 
