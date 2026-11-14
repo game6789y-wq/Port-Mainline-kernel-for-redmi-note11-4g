@@ -262,3 +262,8 @@ Stage 140 — reproducible build/staging helper (2026-11-14)
 - Updated build-spes.sh and SPES config fragment; helper now builds Image/modules/target DTB, installs modules, runs depmod, checks K7/REFGEN/MSM aliases and excludes FPC.
 - Added GitHub copies under kernel/scripts and kernel/config with usage guide. Script syntax check and execution passed (exit 0); 1,681 modules staged, zero FPC.
 - Build helper does not flash or create a Recovery ZIP; display DT nodes remain disabled.
+
+Build helper assets (Stage 140)
+- `kernel/scripts/build-spes.sh`: builds Image/modules/target DTB, installs modules into the release-specific staging directory, runs depmod, checks K7/REFGEN/MSM aliases and ensures no FPC modules.
+- `kernel/config/spes-android.config`: reproducible config fragment including K7, REFGEN, FT3418, MAX77729 and SC8551 modules; FPC explicitly unset.
+- `kernel/scripts/README.md`: documents workspace root, invocation and safety boundary.
