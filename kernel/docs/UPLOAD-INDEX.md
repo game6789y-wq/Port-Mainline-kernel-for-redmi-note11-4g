@@ -32,6 +32,7 @@ Target: Xiaomi Redmi Note 11 4G (SPES, Qualcomm SM6225)
 - `STAGE139-SOURCE-MATCHED-BUILD-DTB-STATUS.md` — records current source-matched build hashes, complete module staging and disabled MDSS/DSI/PHY/FPC DT states.
 - `STAGE140-REPRODUCIBLE-BUILD-STAGING-SCRIPT.md` — documents the automated Image/modules/target-DTB build, module install/depmod and required SPES config options.
 - `STAGE141-SPES-CUSTOM-MODULE-AUTOLOAD-AUDIT.md` — verifies staged MAX77729, FT3418, SC8551, K7 and REFGEN module aliases and dependency dry-runs.
+- `STAGE142-DT-SCHEMA-VALIDATION-RECOVERY.md` — records dtschema 2024.11 recovery, six passing targeted bindings and six passing custom-node DT validations.
 - `kernel/scripts/build-spes.sh` — reproducible Image/modules/target-DTB build and module staging helper.
 - `kernel/config/spes-android.config` — config fragment for SPES platform and custom drivers, with FPC explicitly disabled.
 - `kernel/scripts/README.md` — workspace layout, invocation and safety notes for the build helper.
@@ -177,3 +178,8 @@ The 54.7 MB kernel Image and other build outputs remain in the build workspace. 
 ### Stage 141 update
 - Verified staged MAX77729, FT3418, SC8551, K7 and REFGEN module OF/I2C aliases; `modprobe --show-depends` resolves all five module names.
 - No device runtime or hardware behavior is claimed.
+
+### Stage 142 update
+- Created an isolated dtschema 2024.11 environment; six project-specific `dt_binding_check` targets and six custom-schema validations on the SPES DTB pass.
+- Added the `fpc` vendor prefix and cleaned two K7 binding example node names; these changes do not enable FPC or display hardware.
+- Full-tree validation remains limited by unrelated UFS/CoreSight schema mismatches and all-DTB `dtbs_check` behavior.
