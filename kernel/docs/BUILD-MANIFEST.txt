@@ -272,3 +272,9 @@ Stage 141 — SPES custom module autoload audit (2026-11-14)
 - Verified staged MAX77729, FT3418, SC8551, K7 and REFGEN modules with matching vermagic and OF/I2C aliases.
 - `modprobe --show-depends` resolves all five; K7 dependency chain includes DRM KMS/display helpers and CEC.
 - Metadata validation only; no device runtime test. FPC remains excluded.
+
+Stage 142 — DT schema validation recovery (2026-11-14)
+- dtschema 2024.11 isolated venv resolves the previous 2024.4 bool.pop schema-generation error.
+- Six project-specific dt_binding_check targets and six custom-node dt-validate limits pass on the SPES DTB.
+- Added FPC vendor prefix and cleaned K7 example node names; FPC remains disabled.
+- Full unfiltered dt-validate still reports unrelated UFS/CoreSight schema mismatches; full dtbs_check all-DTB build timed out because DTB_FILES was ignored. Full-tree check is not claimed.
