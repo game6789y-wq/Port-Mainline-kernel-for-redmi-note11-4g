@@ -317,3 +317,5 @@ Stage 148–149 SC8551 protection and Mainline driver audit:
 - Mainline still has read-only SC8551 ID support only; no charge-control driver has been implemented or validated.
 - A later Image/DTB build attempt ended without a final status marker while compiling BPF/MM objects; treat it as incomplete and do not reuse its output as a successful build.
 - No stock boot/vendor_boot/recovery image or Recovery ZIP/installer is present in the workspace. No flash or hardware test.
+
+Stage 153 on-device evidence (user-provided, read-only): codename `spes`; fingerprint `Redmi/spes_global/spes:13/TKQ1.221114.001/V14.0.5.0.TGCMIXM:user/release-keys`; Android release property 16; active slot `_a`; A/B `boot`, `vendor_boot`, `dtbo`, `vbmeta`, `vbmeta_system`; no dedicated `recovery` link in supplied partition list; TWRP/OrangeFox version properties empty. dmesg shows live Vendor `[sc8551-STANDALONE]` and separate MAX77729 PD detach logs. Mainline currently only has read-only SC8551 ID driver. Existing Image/DTB hashes recorded in Stage153; latest build remains unverified. No flash/ZIP yet.
