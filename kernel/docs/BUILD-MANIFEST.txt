@@ -221,3 +221,8 @@ Stage 132 — DRM suspend/restore error-path audit (2026-11-14)
 - Confirmed mode-config suspend snapshots and disables display state, returning failures to DPU PM prepare; resume restores state in DPU complete after device resume.
 - Shutdown uses atomic disable-all; K7 DCS OFF is best-effort and transfer failure does not guarantee panel acceptance.
 - No source/DT change, build or hardware test.
+
+Stage 133 — DSI Host PM patch W=1 object compile (2026-11-14)
+- Repeated the isolated DSI Host object compile with W=1; exit 0 and no compiler warnings.
+- Reversed the temporary patch and verified source SHA-256 unchanged.
+- No full build or hardware test; patch remains unapplied.
