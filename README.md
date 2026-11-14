@@ -108,7 +108,8 @@ The current build manifest and the Stage 1–140 engineering audit are maintaine
 - [x] Finish the reproducible `Image modules` + target SPES DTB build, module installation and `depmod` staging check (Stage 140).
 - [x] Rebuild and record SHA-256 for the fresh kernel `Image`.
 - [ ] Confirm that the `spes` DTB is selected by the actual device and validate the overlay.
-- [x] Validate all six SPES project bindings and the target SPES DTB with dtschema 2024.11.\n- [ ] Run aggregate all-ARM64 `dtbs_check` and resolve unrelated UFS/CoreSight schema mismatches.
+- [x] Validate all six SPES project bindings and the target SPES DTB with dtschema 2024.11.
+- [ ] Run aggregate all-ARM64 `dtbs_check` and resolve unrelated UFS/CoreSight schema mismatches.
 - [ ] Validate board-level regulators, pinctrl, storage and interrupt mappings.
 - [ ] Validate the K7 panel on hardware: regulator sequencing, DSI PLL lock, DSC PPS, first frame, brightness and ESD.
 - [ ] Complete Wi-Fi firmware/calibration, Bluetooth UART and charger integration.
