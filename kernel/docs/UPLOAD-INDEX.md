@@ -37,6 +37,7 @@ Target: Xiaomi Redmi Note 11 4G (SPES, Qualcomm SM6225)
 - `STAGE145-SC8551-MAINLINE-PORT-AUDIT.md` — initial vendor SC8551 full charger driver port audit.
 - `STAGE146-SC8551-DRIVER-PORT-DEEP-REVIEW.md` — deep review of ADC, protection initialization, DT boolean semantics, Power Supply ABI, IRQ/PM and probe/teardown defects found in the vendor SC8551 driver.
 
+- `STAGE152-SPES-VIRTUAL-AB-RECOVERY-PACKAGING-AUDIT.md` — researches SPES Virtual A/B/no-dedicated-recovery packaging and lists the exact boot/vendor_boot/slot/recovery evidence required before creating a flash ZIP.
 - `STAGE151-SC8551-SILICON-DETECTION-ERROR-AUDIT.md` — confirms Vendor detection accepts unknown IDs after a successful read and may log uninitialized data after I2C failure; defines strict Mainline probe gating.
 - `STAGE150-SC8551-DATASHEET-IDENTITY-GAP.md` — records that the public Southchip document found is only a one-page SC8551A draft, not a complete SC8551 register datasheet; silicon identity and register-map equivalence remain an implementation gate.
 - `STAGE149-SC8551-MAINLINE-DRIVER-IMPLEMENTATION-PLAN.md` — defines the safe Mainline SC8551 driver architecture and records Vendor IRQ, power_supply ABI, debug sysfs, devm cleanup, PM and initialization hazards.
