@@ -2,7 +2,8 @@ Subject: [PATCH] drm/msm/dsi: handle runtime PM acquisition failures
 
 Use pm_runtime_resume_and_get() so failed resumes do not leave usage
 counter references behind. Check transfer clock setup before touching
-DSI registers, and unwind host power-on resources in reverse order.
+DSI registers, skip snapshots when bus-clock resume fails, and unwind
+host power-on resources in reverse order.
 
 The patch is a draft against the SPES port working tree after applying
 spes-mainline-port.patch. It has not been applied to the kernel source.
@@ -107,16 +108,16 @@ spes-mainline-port.patch. It has not been applied to the kernel source.
  			__func__, ret);
 -		goto unlock_ret;
 +		goto fail_disable_sfpb;
- 	}
- 
--	pm_runtime_get_sync(&msm_host->pdev->dev);
++	}
++
 +	ret = pm_runtime_resume_and_get(&msm_host->pdev->dev);
 +	if (ret < 0) {
 +		pr_err("%s: failed to resume DSI bus clocks. ret=%d\n",
 +		       __func__, ret);
 +		goto fail_disable_reg;
-+	}
-+
+ 	}
+ 
+-	pm_runtime_get_sync(&msm_host->pdev->dev);
  	ret = cfg_hnd->ops->link_clk_set_rate(msm_host);
 -	if (!ret)
 -		ret = cfg_hnd->ops->link_clk_enable(msm_host);
@@ -133,6 +134,7 @@ spes-mainline-port.patch. It has not been applied to the kernel source.
  
  	ret = pinctrl_pm_select_default_state(&msm_host->pdev->dev);
 @@ -2620,10 +2655,13 @@
+ 
  fail_disable_clk:
  	cfg_hnd->ops->link_clk_disable(msm_host);
 +fail_pm:
@@ -145,3 +147,19 @@ spes-mainline-port.patch. It has not been applied to the kernel source.
  unlock_ret:
  	mutex_unlock(&msm_host->dev_mutex);
  	return ret;
+@@ -2714,8 +2752,14 @@
+ void msm_dsi_host_snapshot(struct msm_disp_state *disp_state, struct mipi_dsi_host *host)
+ {
+ 	struct msm_dsi_host *msm_host = to_msm_dsi_host(host);
++	int ret;
+ 
+-	pm_runtime_get_sync(&msm_host->pdev->dev);
++	ret = pm_runtime_resume_and_get(&msm_host->pdev->dev);
++	if (ret < 0) {
++		dev_err(&msm_host->pdev->dev,
++			"failed to resume DSI host for snapshot: %d\n", ret);
++		return;
++	}
+ 
+ 	msm_disp_snapshot_add_block(disp_state, msm_host->ctrl_size,
+ 			msm_host->ctrl_base, "dsi%d_ctrl", msm_host->id);
