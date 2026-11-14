@@ -99,7 +99,7 @@ The priority is to establish correct hardware support and a reproducible kernel 
 
 **Display engineering notes:** the active stock panel is K7 38-0C-0A, 1080×2400. The port currently targets a fixed 90Hz mode. The corrected Mainline DSI host estimate for the DSC mode is approximately 136.581MHz byte clock and 1.093Gbps per lane; these are calculated values, not measurements. PLL lock, first frame, brightness and ESD behavior have not been validated on the phone.
 
-**Validation caveat:** binding documentation validation passed with `dt-doc-validate`. Full `dtbs_check` remains blocked by an internal error in the installed dtschema 2024.4 (`AttributeError: 'bool' object has no attribute 'pop'`), so full schema validation is not claimed. `git diff --check` passed.
+**Validation status:** all six project-specific `dt_binding_check` targets pass with isolated dtschema 2024.11. The SPES DTB also passes a targeted `CHECK_DTBS=1` check using those six schemas. Aggregate all-ARM64 `dtbs_check` remains unrun, and full unfiltered `dt-validate` still reports unrelated UFS/CoreSight schema mismatches. See [Stage 142](kernel/docs/STAGE142-DT-SCHEMA-VALIDATION-RECOVERY.md) and [Stage 143](kernel/docs/STAGE143-TARGETED-DT-VALIDATOR.md). `git diff --check` passed.
 
 The current build manifest and the Stage 1–140 engineering audit are maintained in [`kernel/docs/UPLOAD-INDEX.md`](kernel/docs/UPLOAD-INDEX.md) and [`kernel/docs/BUILD-MANIFEST.txt`](kernel/docs/BUILD-MANIFEST.txt). Static audits confirm the software path configures a 128-byte DSC PPS (type 0x0A, LP mode) after panel initialization, with 540-byte slice chunks and two packets per line. The SM6225 DPU catalog has one DSC block; its software path assigns both slices to that encoder. Source-level follow-up (Stage 108) confirms one DSC_0 / PINGPONG_0 / LM_0 / INTF_1 route to DSI0; DPU configures DSC and PingPong, flushes DSC_0 and INTF_1 through CTL, then starts the encoder. These are source-level findings only, not proof of hardware operation. Stage 109 also records a known error-path limitation: DRM bridge enable callbacks are void, so a K7 initialization failure cannot veto the generic DPU kickoff. Treat any such failure as a hardware-test failure. Stage 110 confirms that K7 DCS 0x0A ESD status checking (vendor expected 0x9D) is not implemented; DSI error IRQ recovery is also limited and does not automatically recover PLL/lane errors. These remain hardware-test gaps. No Recovery ZIP, installable package or tested release is available.
 
@@ -108,7 +108,7 @@ The current build manifest and the Stage 1–140 engineering audit are maintaine
 - [x] Finish the reproducible `Image modules` + target SPES DTB build, module installation and `depmod` staging check (Stage 140).
 - [x] Rebuild and record SHA-256 for the fresh kernel `Image`.
 - [ ] Confirm that the `spes` DTB is selected by the actual device and validate the overlay.
-- [ ] Complete full Device Tree schema validation after repairing/updating the local dtschema toolchain.
+- [x] Validate all six SPES project bindings and the target SPES DTB with dtschema 2024.11.\n- [ ] Run aggregate all-ARM64 `dtbs_check` and resolve unrelated UFS/CoreSight schema mismatches.
 - [ ] Validate board-level regulators, pinctrl, storage and interrupt mappings.
 - [ ] Validate the K7 panel on hardware: regulator sequencing, DSI PLL lock, DSC PPS, first frame, brightness and ESD.
 - [ ] Complete Wi-Fi firmware/calibration, Bluetooth UART and charger integration.
@@ -132,7 +132,7 @@ The current build manifest and the Stage 1–140 engineering audit are maintaine
 
 | Subsystem | Work required |
 |---|---|
-| Device Tree | Complete and validate the SM6225 / `spes` board description |
+| Device Tree | SPES DTS and six targeted binding/DTB checks pass; aggregate validation and hardware verification remain pending |
 | Display | Identify panel and implement a compatible display path |
 | Touch | Identify controller, GPIOs, interrupts and driver support |
 | Storage | Validate UFS controller, PHY, power rails and boot storage |
@@ -144,7 +144,7 @@ The current build manifest and the Stage 1–140 engineering audit are maintaine
 
 - [x] **Phase 0 — Workspace:** source, toolchain and initial build environment.
 - [x] **Phase 1 — Kernel build:** produce and verify a complete ARM64 kernel image (build-only; no device boot).
-- [ ] **Phase 2 — Device Tree:** complete and validate the `spes` DTB.
+- [x] **Phase 2 — Device Tree:** SPES DTS added; six binding checks and target-DTB schema validation pass. Aggregate checks and hardware validation remain pending.
 - [ ] **Phase 3 — Core platform:** storage, regulators, pinctrl, clocks and USB.
 - [ ] **Phase 4 — User interface:** validate K7 display and touchscreen on hardware.
 - [ ] **Phase 5 — Peripherals:** audio, sensors, camera, connectivity and power management.
