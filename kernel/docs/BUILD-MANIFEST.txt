@@ -236,3 +236,9 @@ Stage 135 — DSI Host snapshot PM guard and refreshed full build (2026-11-14)
 - Added snapshot-path PM resume checking; the updated draft now covers all four `dsi_host.c` PM acquisitions and avoids register reads if snapshot resume fails.
 - Updated patch passes W=1 DSI Host object compile and full Image/modules build (exit 0); source was restored and SHA-256 matched pre-test.
 - Test Image/MSM module hashes are documented in STAGE135-DSI-HOST-SNAPSHOT-PM-FIX.md; module staging was not refreshed and artifacts are not release outputs.
+
+Stage 136 — K7 panel module staging correction (2026-11-14)
+- Found K7 panel `.ko` present in build output but missing from the previous module staging tree despite CONFIG_DRM_PANEL_XIAOMI_K7_38_0C_0A=m.
+- Rebuilt Image/modules from unpatched source, ran modules_install and depmod; K7 module now staged with OF aliases and dependency metadata. `modprobe --show-depends` resolves K7 dependencies.
+- Staging contains 1,681 modules and zero FPC modules. Build hashes and module SHA are in STAGE136-K7-MODULE-STAGING-FIX.md.
+- Display DT nodes remain disabled; no hardware test or flash.
