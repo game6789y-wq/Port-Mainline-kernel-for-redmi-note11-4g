@@ -226,3 +226,8 @@ Stage 133 — DSI Host PM patch W=1 object compile (2026-11-14)
 - Repeated the isolated DSI Host object compile with W=1; exit 0 and no compiler warnings.
 - Reversed the temporary patch and verified source SHA-256 unchanged.
 - No full build or hardware test; patch remains unapplied.
+
+Stage 134 — full Image/modules patch integration build (2026-11-14)
+- Full Image/modules target completed exit 0 with the DSI Host PM draft temporarily applied; DSI Host object, MSM module, MODPOST, vmlinux and ARM64 Image completed.
+- Draft was reversed; DSI Host source SHA-256 before/after is identical. New Image/MSM.ko hashes are recorded in STAGE134-FULL-BUILD-PATCH-INTEGRATION.md.
+- These outputs are temporary patch integration artifacts, not a source-matched release; module staging was not refreshed. No hardware boot/test/flash.
