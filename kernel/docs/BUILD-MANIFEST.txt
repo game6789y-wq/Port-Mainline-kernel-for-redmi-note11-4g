@@ -135,7 +135,9 @@ Stage 113 DSI/DPU and K7 failure/re-enable audit:
 
 Stage 114 backlight/DSI/DPU frame-completion audit:
 - K7 backlight updates under ctx->lock, uses LP mode and MSM DSI cmd_mutex serialization. Host power_on is checked before cmd_mutex; any future delayed worker must be canceled before host power-off.
-- Critical vendor/mainline byte-order mismatch: vendor K7 DTS sets qcom,mdss-dsi-bl-inverted-dbv; vendor driver swaps brightness bytes. Mainline helper emits ordinary big-endian bytes. For 0x07ff vendor sends ff 07; current helper sends 07 ff. Brightness correctness is unverified. Proposed later patch: explicit swapped payload for DCS 0x51, range 0..2047, after API semantics review.
+- Stage 115 corrected Stage 114 brightness-byte analysis: vendor swaps the value then uses the legacy little-endian helper; Mainline uses the large-brightness big-endian helper directly. Both transmit identical DCS 0x51 payload bytes (0x07ff -> 07 ff). No byte-order source change is required. Actual brightness response remains untested on hardware.
 - Backlight update failure logs/returns error but does not disable panel; separate brightness-transfer error from panel-init/DSI link failure.
 - DPU vblank IRQ validates CTL flush bits, updates pending kickoff and reports frame done. Video disable waits TX/VSYNC before teardown. Frame-done watchdog and 50ms CTL flush timeout are distinct display-pipeline diagnostics, not proof of panel ESD.
 - Stage 114 is static audit only; no source/DTS change, rebuild or hardware test. MDSS/DSI0/PHY disabled; FPC disabled.
+
+Stage 115: verified vendor/Mainline DCS brightness serialization equivalence. Stage 114 preliminary mismatch warning is superseded; no source patch required. Static audit only; no rebuild or hardware validation.

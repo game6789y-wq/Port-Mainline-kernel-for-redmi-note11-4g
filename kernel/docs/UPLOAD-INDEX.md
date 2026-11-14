@@ -43,6 +43,12 @@ The 54.7 MB kernel Image and other build outputs remain in the build workspace. 
 - Documented why host FIFO reset, PLL/PHY errors and DPU timeouts must not be treated as panel ESD or trigger a blind panel reset. Defined a controlled DRM disable/re-enable sequence for future hardware validation; no recovery code implemented.
 
 ### Stage 114 — Backlight and frame-completion audit
-- Confirmed vendor K7 panel requires inverted DBV byte order; identified mismatch with mainline standard big-endian brightness helper. Documented concrete `0x07ff` byte sequence difference and recommended explicit swapped DCS `0x51` payload for a later patch.
+- Initially flagged a possible DBV byte-order mismatch; Stage 115 subsequently verified that vendor inversion plus its legacy little-endian helper is wire-equivalent to Mainline's large-brightness big-endian helper. The preliminary mismatch warning is superseded; no payload patch is required.
 - Audited LP-mode backlight writes, `ctx->lock`/host `cmd_mutex` serialization, host power gate, DPU vblank/CTL flush/frame-done path and disable VSYNC wait. Kept brightness errors distinct from DSI link and DPU frame errors.
 - Audit only: no source/DTS edits, rebuild or hardware test.
+
+
+### Stage 115 — Corrected brightness byte-order verification
+- Reconciled vendor DBV inversion with the actual legacy little-endian helper and Mainline large-brightness big-endian helper. Both produce the same DCS 0x51 payload (`0x07ff` -> `07 ff`).
+- Supersedes Stage 114's preliminary mismatch warning. No source change required; visual brightness remains unverified on hardware.
+- Static audit only; no rebuild or hardware test.
