@@ -25,6 +25,10 @@ Status: draft only; not applied to kernel source.
 - No hardware test; MDSS/DSI0/DSI PHY remain disabled.
 - No flash or release artifact.
 
+## Revision note — Stage 135
+
+The patch was expanded in Stage 135 to also guard `msm_dsi_host_snapshot()` against failed Runtime-PM resume before reading DSI registers. The current draft therefore covers four PM acquisition sites; the original 52-insertion/14-deletion count above describes the initial Stage 126 revision only. See `STAGE135-DSI-HOST-SNAPSHOT-PM-FIX.md` for the latest patch scope, updated diff statistics, W=1 object compile and full Image/modules integration build. The patch remains unapplied and still requires a developer `Signed-off-by` for upstream submission.
+
 ## Review points before applying
 
 - Review error-pointer return semantics for `dsi_get_config()` in the context of the target kernel branch.
