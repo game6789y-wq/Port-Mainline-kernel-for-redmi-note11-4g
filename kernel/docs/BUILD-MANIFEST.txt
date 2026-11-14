@@ -201,3 +201,8 @@ Stage 128 — Khaje REFGEN compatibility audit (2026-11-14)
 - Compared vendor `qcom,refgen-kona-regulator` behavior with Mainline `qcom,sm8250-refgen-regulator`: both enable bit 0 at offset 0x80 and clear it on disable.
 - Confirmed the Mainline REFGEN module is built and staged; vendor proxy-consumer self-reference is not reproduced because Mainline DSI Host consumes REFGEN directly.
 - No source/DT change, new build or hardware test.
+
+Stage 129 — REFGEN module autoload audit (2026-11-14)
+- Confirmed CONFIG_REGULATOR_QCOM_REFGEN=m, staged .ko, matching vermagic, OF alias for qcom,sm8250-refgen-regulator, and modules.alias/modules.dep entries.
+- Final target rootfs inclusion and module load at boot remain untested.
+- No source/DT changes or new build.
