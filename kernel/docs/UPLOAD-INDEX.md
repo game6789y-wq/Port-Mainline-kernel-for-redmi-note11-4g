@@ -17,6 +17,7 @@ Target: Xiaomi Redmi Note 11 4G (SPES, Qualcomm SM6225)
 - `STAGE124-SM6375-PHY-POWER-AUDIT.md` — SM6375 7nm PHY runtime PM, supply and power-tree audit.
 - `STAGE125-DSI-BRIDGE-POWER-SEQUENCE.md` — DSI/PHY power order, bridge failure unwind and DRM pre-enable error-propagation limits.
 - `STAGE126-DSI-HOST-PM-PATCH-REVIEW.md` — review and validation status for the un-applied DSI Host Runtime-PM patch draft.
+- `STAGE127-DSI-HOST-PATCH-COMPILE-CHECK.md` — isolated DSI Host object compile result and source restoration verification.
 - `../patches/drafts/0001-msm-dsi-host-runtime-pm-unwind.patch` — draft code patch; requires developer sign-off and has not been applied.
 
 ## Apply the source patch
@@ -97,3 +98,7 @@ The 54.7 MB kernel Image and other build outputs remain in the build workspace. 
 ### Stage 126 update
 - Added `STAGE126-DSI-HOST-PM-PATCH-REVIEW.md` and draft `0001-msm-dsi-host-runtime-pm-unwind.patch` covering DSI Host PM acquisition, power-on unwind, and transfer preparation error handling.
 - `git apply --check` passes against the current SPES port working tree. `checkpatch.pl --strict` reports only the missing developer `Signed-off-by`; no sign-off was invented. Patch is not applied and no build was run.
+
+### Stage 127 update
+- Temporarily applied the draft patch, compiled `drivers/gpu/drm/msm/dsi/dsi_host.o` successfully, reversed the patch, and confirmed the source file SHA-256 was unchanged.
+- This was an object-only compile; no full Image/modules build or hardware test.
