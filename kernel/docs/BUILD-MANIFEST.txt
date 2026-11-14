@@ -206,3 +206,8 @@ Stage 129 — REFGEN module autoload audit (2026-11-14)
 - Confirmed CONFIG_REGULATOR_QCOM_REFGEN=m, staged .ko, matching vermagic, OF alias for qcom,sm8250-refgen-regulator, and modules.alias/modules.dep entries.
 - Final target rootfs inclusion and module load at boot remain untested.
 - No source/DT changes or new build.
+
+Stage 130 — Khaje DSI v2.4 mapping (2026-11-14)
+- Vendor Khaje DTS declares DSI0 compatible qcom,dsi-ctrl-hw-v2.4; Mainline v2.4.0 and v2.4.1 both map to sdm845_dsi_cfg/msm_dsi_6g_v2_host_ops for base 0x5e94000.
+- Vendor declaration is family-level evidence only; the raw runtime HW-version register remains unmeasured and runtime detection must remain authoritative.
+- No source/DT change, rebuild or hardware test.
