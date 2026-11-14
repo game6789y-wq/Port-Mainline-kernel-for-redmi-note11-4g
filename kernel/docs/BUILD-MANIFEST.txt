@@ -1,0 +1,99 @@
+SPES Mainline Kernel Build Manifest
+Build target: Xiaomi Redmi Note 11 (SPES / SM6225)
+Kernel release: 7.3.0-rc4-gc545b9e890d7-dirty
+
+Kernel Image: /workspace/ubuntu-spes-mainline/build/spes/arch/arm64/boot/Image
+Image SHA256: de1d6ef64d1870b674c831d90e0c0814cb19351e981aa1f8dfdccbfe96522266
+Device Tree Blob: /workspace/ubuntu-spes-mainline/build/spes/arch/arm64/boot/dts/qcom/sm6225-xiaomi-spes.dtb
+DTB SHA256: 4eae7c455a7572ac877785d02b79f745c78dc7f63189b57ca32a48380889ff64
+K7 panel module: /workspace/ubuntu-spes-mainline/build/spes/drivers/gpu/drm/panel/panel-k7-38-0c-0a.ko
+Panel module SHA256: 8f092d6c81f90e2f818402474bdef8d2f9f8f62abbc5658d3cd76f4c97e525a0
+Panel module config: CONFIG_DRM_PANEL_XIAOMI_K7_38_0C_0A=m
+
+Build verification:
+- Image + modules build after MIPI-DSI batch API and single-link guard: Exit Code 0
+- Native batch API and MSM DSI host objects compiled with W=1: Exit Code 0
+- K7 panel driver object compiled with W=1: Exit Code 0
+- Full make modules after safe pinctrl correction: Exit Code 0
+- SPES K7 DTB build after dormant panel graph addition: Exit Code 0, no DTC warnings/errors
+- Panel binding dt-doc-validate: PASS
+- dt_binding_check: BLOCKED by installed dtschema 2024.4 internal AttributeError ('bool' object has no attribute 'pop') before binding-specific validation
+- git diff --check: PASS
+
+Important limitations:
+- K7 panel driver is built and its panel child/graph/pinctrl are present in SPES DTS, but MDSS / DSI0 / DSI PHY remain disabled.
+- The panel graph is dormant; no display enablement and no hardware runtime test.
+- No module staging, Recovery ZIP, flash, release, commit or push.
+- Fingerprint scanning remains disabled/skipped.
+
+MSM DRM module: /workspace/ubuntu-spes-mainline/build/spes/drivers/gpu/drm/msm/msm.ko
+MSM DRM module SHA256: 64f070ad98a587d02e6acec52e1a001a3ab2312d18070135e68bbbf57421e6bd
+REFGEN module: /workspace/ubuntu-spes-mainline/build/spes/drivers/regulator/qcom-refgen-regulator.ko
+REFGEN module SHA256: 483d00e12a46a5e0d80448e3decb0371aeb9354382bf47bd0d1394a1e43370cf
+K7 panel module SHA256: 8f092d6c81f90e2f818402474bdef8d2f9f8f62abbc5658d3cd76f4c97e525a0
+
+Latest display supply integration:
+- PM6125 L4 fixed 0.88 V -> SM6375-compatible 7nm DSI PHY vdds-supply (36mA regulator descriptor)
+- PM6125 L18 fixed 1.232 V -> DSI host vdda-supply
+- Upstream SM8250-compatible REFGEN provider at 0x01600000 -> DSI host refgen-supply
+- Full make modules after PHY regulator integration: Exit Code 0
+- SPES DTB after analog supply integration: Exit Code 0, no DTC warnings/errors
+- dt-doc-validate: PASS for REFGEN, 7nm PHY, SM6375 MDSS and K7 panel bindings
+- MDSS/DSI0/DSI PHY remain disabled in effective DTB; no hardware test or display enablement
+
+Latest validation status:
+- W=1 dsi_phy_7nm.o: PASS
+- Targeted dtbs_check: BLOCKED before DTB validation by dtschema 2024.4 AttributeError ('bool' object has no attribute 'pop')
+- Individual dt-doc-validate: PASS for REFGEN, 7nm PHY, SM6375 MDSS and K7 panel schemas
+
+Stage 101 power/performance audit:
+- MDSS DispCC GDSC, child VDDCX domains, DSI PHY runtime-PM and ICC ordering inspected; structurally coherent.
+- Correct DPU mode-only core clock estimate: 248.210 MHz (vtotal*hdisplay*90Hz*105%), selects 300MHz/SVS OPP; 339.702MHz is DSI pixel clock, not DPU core clock.
+- Stage 103 corrected DSI byte clock: 136.581216MHz; 187.5MHz/low-SVS remains the selected OPP.
+- Simple XRGB8888 full-screen 1080x2400@90 fetch estimate 0.933GB/s raw, 1.12GB/s with 20% inefficiency; actual votes are plane-specific and runtime-calculated.
+- No source/DTS edits or rebuild in Stage 101. Display nodes remain disabled pending hardware validation.
+
+Stage 102 SM6375 7nm DSI PLL audit:
+- Confirmed SM6375 selects the upstream 7nm V4.1 PHY configuration and 36mA analog regulator descriptor.
+- PLL VCO range is 600MHz–5GHz (64-bit); this does not alone prove the target lane rate.
+- PLL lock is polled from COMMON_STATUS_ONE bit 0 at 100us intervals up to 5ms; failure aborts PHY prepare.
+- Pixel/byte/lane clocks remain calculated estimates; no live PLL lock test because display nodes remain disabled.
+- No source/DTS changes and no rebuild in Stage 102.
+
+
+Stage 103 DSC-adjusted DSI clock correction:
+- Recalculated using the actual DSI host functions: adjusted hdisplay 360, adjusted htotal 832.
+- Host-adjusted pixel clock 182.108288MHz; byte clock 136.581216MHz; estimated lane bit clock 1.092649728Gbps.
+- This supersedes the earlier 84.926MHz / 679.404Mbps estimates. DSI OPP remains 187.5MHz / low-SVS.
+- No source/DTS changes or rebuild; display nodes remain disabled pending hardware validation.
+
+Stage 104 DSI clock programming audit:
+- SM6115 DSI host uses 6G rate path: round byte clock, request DSI OPP, then set pixel and byte-interface clocks.
+- Corrected byte clock 136.581216MHz selects 187.5MHz OPP; pixel clock request is 182.108288MHz.
+- SM6375 PHY uses runtime D-PHY timing v4 calculation. Actual VCO/divider tuple requires live CCF clock and PLL register readback.
+- No source/DTS changes or rebuild. Display nodes remain disabled; no hardware validation.
+
+Stage 105 DSC PPS audit:
+- K7 vendor DSC settings match Mainline: DSC 1.1, 8bpc, 8bpp, block prediction, two 540x20 slices, one slice per packet.
+- Host pre-enable populates DSC dimensions/RC/slice chunk before panel pre-enable due bridge ordering.
+- Computed slice chunk is 540 bytes; two packets per line; PPS payload is 128 bytes, DSI type 0x0A, LP mode, 10ms post-PPS wait.
+- Software config/order consistent; no reference binary PPS for byte comparison and no hardware acceptance test.
+- No source/DTS changes or rebuild; display nodes remain disabled.
+
+Stage 106 SM6225 DPU DSC audit:
+- SM6225 DPU 6.10 catalog exposes one DSC encoder block.
+- DPU topology selects one encoder for one interface; DSC block config uses `slice_count=2` as two active slices per encoder when not multiplexed.
+- 1080px line width is within catalog max width 2160. Software structure is compatible with two 540px slices; silicon/runtime behavior unverified.
+- No source/DTS changes or rebuild; display nodes remain disabled.
+
+Stage 107 DPU legacy DSC detail:
+- SM6225 DPU 6.10 uses the legacy DPU DSC register programming helper (core major 6), not the DPU 1.2-specific helper.
+- One DSC encoder receives 1080px input width with 540px slice width; software calculates two soft slices and adds the extra sub-stream-multiplexer initial-line delay.
+- No literal hardware slice-count register is programmed by the legacy helper. Runtime/silicon behavior remains unverified.
+- No source/DTS changes or rebuild.
+
+Stage 108 DPU pipeline audit:
+- SM6225 catalog: one DSC_0, one PINGPONG_0, LM_0, INTF_1 -> DSI0.
+- DPU mode-set assigns PP/DSC resources at index 0. Prepare-for-kickoff configures DSC, PingPong endian swap/binding and PP_DSC_MODE.
+- CTL v1 flushes DSC_0 and INTF_1 before aggregate CTL_FLUSH; encoder kickoff then triggers CTL_START. DSI host video mode is enabled by manager bridge.
+- Software routing is coherent; silicon/board behavior and first frame remain unverified. No source/DTS changes or rebuild; display graph stays disabled.
