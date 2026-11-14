@@ -24,18 +24,22 @@ Full DT validation flagged the FPC-specific `fpc,enable-on-boot` property becaus
 
 The two small schema changes are captured in draft patch `kernel/patches/drafts/0002-dt-vendor-prefix-and-example-cleanup.patch`. Reverse/apply checks passed and file hashes were unchanged after the patch verification cycle.
 
-## Target-DTB validation
+## Target-specific DTB schema check
 
-Using the generated `processed-schema.json` and `dt-validate -l` limits, the SPES DTB passes validation for all six project-specific schemas:
+The generated `processed-schema.json` was used with the kernel build system's targeted check path:
+
+`CHECK_DTBS=1 DT_SCHEMA_FILES='fpc,fpc1020:xiaomi,k7-38-0c-0a:focaltech,ft3418:maxim,max77729:southchip,sc8551-id-only:qcom,sdm845-refgen-regulator' make O=build/spes ARCH=arm64 CROSS_COMPILE=aarch64-linux-gnu- qcom/sm6225-xiaomi-spes.dtb`
+
+This target-specific check completed with exit status 0. It compiles only the SPES DTB and runs `dt-validate` limited to the six project-specific schemas. The same six schema limits were also run directly against the DTB and passed:
 
 - `fpc,fpc1020`
 - `xiaomi,k7-38-0c-0a`
 - `focaltech,ft3418`
 - `maxim,max77729`
 - `southchip,sc8551-id-only`
-- `qcom,sm8250-refgen-regulator`
+- `qcom,sdm845-refgen-regulator`
 
-A full unfiltered `dt-validate` still reports unrelated existing upstream schema mismatches in the UFS `clocks`/`clock-names` and CoreSight ETR `iommus` nodes. The full `dtbs_check` target ignores the attempted `DTB_FILES` restriction and began compiling all ARM64 DTBs, so that run was stopped at timeout. Do not report full-tree `dtbs_check` as passed.
+A full unfiltered `dt-validate` still reports unrelated existing upstream schema mismatches in the UFS `clocks`/`clock-names` and CoreSight ETR `iommus` nodes. The aggregate `dtbs_check` target builds all ARM64 DTBs; it was not run to completion. Do not report full-tree `dtbs_check` as passed. The target-specific SPES DTB schema check above is the validation that passed.
 
 ## Validation / safety
 
