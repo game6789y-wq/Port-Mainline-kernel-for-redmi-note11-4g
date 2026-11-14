@@ -64,7 +64,8 @@ The priority is to establish correct hardware support and a reproducible kernel 
 | Full kernel `Image modules` + target DTB build | **Completed successfully — exit code 0** using the reproducible build helper (Stage 140) |
 | Kernel `Image` | Build output present; SHA-256 `3315ba5191cb5a7cdeb3c365cfca7dc24af1e44b9369e7e2d82054058a6e37d4` |
 | `spes` DTB | Latest target build passed; SHA-256 `4eae7c455a7572ac877785d02b79f745c78dc7f63189b57ca32a48380889ff64` |
-| Module staging | 1,681 `.ko` files installed with regenerated `modules.dep` / `modules.alias`; K7 and REFGEN modules verified; zero FPC modules |\n| K7 38-0C-0A display bridge | Driver built and staged; 90Hz fixed mode only; no hardware test |
+| Module staging | 1,681 `.ko` files installed with regenerated `modules.dep` / `modules.alias`; K7 and REFGEN modules verified; zero FPC modules |
+| K7 38-0C-0A display bridge | Driver built and staged; 90Hz fixed mode only; no hardware test |
 | Fingerprint | **Intentionally skipped / disabled**; no fingerprint scanning, TEE or HAL work in this porting phase |
 | Redmi Note 11 boot test | Not performed; MDSS, DSI0 and DSI PHY remain disabled in the board DT |
 | Evolution X Android 16 compatibility | Not established |
@@ -92,7 +93,9 @@ The priority is to establish correct hardware support and a reproducible kernel 
 |---|---|---|
 | Kernel `Image` | `3315ba5191cb5a7cdeb3c365cfca7dc24af1e44b9369e7e2d82054058a6e37d4` | Source-matched build output; not boot-tested |
 | `sm6225-xiaomi-spes.dtb` | `4eae7c455a7572ac877785d02b79f745c78dc7f63189b57ca32a48380889ff64` | DTB build passed; display graph remains dormant |
-| `drivers/gpu/drm/msm/msm.ko` | `64f070ad98a587d02e6acec52e1a001a3ab2312d18070135e68bbbf57421e6bd` | Source-matched MSM DRM module; not hardware-tested |\n| `panel-k7-38-0c-0a.ko` | `8f092d6c81f90e2f818402474bdef8d2f9f8f62abbc5658d3cd76f4c97e525a0` | Module built and staged; no hardware test |\n| `qcom-refgen-regulator.ko` | `483d00e12a46a5e0d80448e3decb0371aeb9354382bf47bd0d1394a1e43370cf` | Module built and staged; OF alias verified |
+| `drivers/gpu/drm/msm/msm.ko` | `64f070ad98a587d02e6acec52e1a001a3ab2312d18070135e68bbbf57421e6bd` | Source-matched MSM DRM module; not hardware-tested |
+| `panel-k7-38-0c-0a.ko` | `8f092d6c81f90e2f818402474bdef8d2f9f8f62abbc5658d3cd76f4c97e525a0` | Module built and staged; no hardware test |
+| `qcom-refgen-regulator.ko` | `483d00e12a46a5e0d80448e3decb0371aeb9354382bf47bd0d1394a1e43370cf` | Module built and staged; OF alias verified |
 
 **Display engineering notes:** the active stock panel is K7 38-0C-0A, 1080×2400. The port currently targets a fixed 90Hz mode. The corrected Mainline DSI host estimate for the DSC mode is approximately 136.581MHz byte clock and 1.093Gbps per lane; these are calculated values, not measurements. PLL lock, first frame, brightness and ESD behavior have not been validated on the phone.
 
@@ -232,6 +235,9 @@ The current source snapshot and engineering notes are organized under [kernel/](
 - [K7 panel command audit](kernel/docs/k7-38-0c-0a-panel-command-audit.txt).
 - [K7 panel driver design and Stages 1–108](kernel/docs/k7-38-0c-0a-panel-driver-design.md).
 - [SM6225 display clock/power map](kernel/docs/k7-sm6225-display-clock-power-map.md).
-- [PMIC / SC8551 port audit](kernel/docs/spes-max77729-sc8551-port-audit.md).\n- [Latest source-matched build and DTB safety status (Stage 139)](kernel/docs/STAGE139-SOURCE-MATCHED-BUILD-DTB-STATUS.md).\n- [Reproducible build/staging helper (Stage 140)](kernel/docs/STAGE140-REPRODUCIBLE-BUILD-STAGING-SCRIPT.md).\n- [DSI Host Runtime-PM draft patch review (not applied)](kernel/docs/STAGE135-DSI-HOST-SNAPSHOT-PM-FIX.md).
+- [PMIC / SC8551 port audit](kernel/docs/spes-max77729-sc8551-port-audit.md).
+- [Latest source-matched build and DTB safety status (Stage 139)](kernel/docs/STAGE139-SOURCE-MATCHED-BUILD-DTB-STATUS.md).
+- [Reproducible build/staging helper (Stage 140)](kernel/docs/STAGE140-REPRODUCIBLE-BUILD-STAGING-SCRIPT.md).
+- [DSI Host Runtime-PM draft patch review (not applied)](kernel/docs/STAGE135-DSI-HOST-SNAPSHOT-PM-FIX.md).
 
 This is a source and engineering snapshot, not a flashable or hardware-validated release. The kernel Image and module binaries remain in the build workspace and are not published as release assets.
