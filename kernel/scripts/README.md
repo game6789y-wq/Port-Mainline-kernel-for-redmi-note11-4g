@@ -38,3 +38,22 @@ The script removes only the current kernel-release directory under `build/spes-m
 ## Safety
 
 A successful compile and module-staging check do not establish hardware bring-up, Android boot compatibility, panel operation or first-frame success. The MDSS/DSI0/DSI PHY nodes remain disabled pending controlled device validation. The script does not create a Recovery ZIP, installer or flash image, and it never flashes the device.
+
+## Validate SPES Device Tree
+
+Install the known-good schema toolchain in an isolated virtual environment:
+
+```sh
+python3 -m venv /workspace/ubuntu-spes-mainline/.venv-dtschema-2024.11
+/workspace/ubuntu-spes-mainline/.venv-dtschema-2024.11/bin/pip install 'dtschema==2024.11'
+```
+
+Then run the targeted validator:
+
+```sh
+SPES_WORKSPACE_ROOT=/workspace/ubuntu-spes-mainline \
+DTS_SCHEMA_BIN=/workspace/ubuntu-spes-mainline/.venv-dtschema-2024.11/bin \
+ bash kernel/scripts/validate-spes-dt.sh
+```
+
+The validator checks the six SPES project bindings, validates only the SPES DTB against those schemas, verifies MDSS/DSI0/DSI PHY/FPC remain disabled, and runs `git diff --check`. It intentionally does not run the aggregate all-ARM64 `dtbs_check` target.
