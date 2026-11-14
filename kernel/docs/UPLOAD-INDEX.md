@@ -21,6 +21,7 @@ Target: Xiaomi Redmi Note 11 4G (SPES, Qualcomm SM6225)
 - `STAGE128-KHAJE-REFGEN-COMPATIBILITY-AUDIT.md` — compares vendor Khaje REFGEN implementation with the Mainline regulator driver and verifies the module is staged.
 - `STAGE129-REFGEN-MODULE-AUTOLOAD-AUDIT.md` — verifies REFGEN module vermagic, OF aliases and staged depmod metadata.
 - `STAGE130-KHAJE-DSI-HW-VERSION-MAPPING.md` — maps vendor DSI controller v2.4 declaration to Mainline v2.4.0/2.4.1 handlers.
+- `STAGE131-DRM-SUSPEND-SHUTDOWN-LIFECYCLE.md` — audits DRM display shutdown before system-sleep forced PM and DPU reboot/poweroff shutdown.
 - `../patches/drafts/0001-msm-dsi-host-runtime-pm-unwind.patch` — draft code patch; requires developer sign-off and has not been applied.
 
 ## Apply the source patch
@@ -117,3 +118,7 @@ The 54.7 MB kernel Image and other build outputs remain in the build workspace. 
 ### Stage 130 update
 - Added `STAGE130-KHAJE-DSI-HW-VERSION-MAPPING.md`: vendor Khaje DTS declares DSI controller v2.4; Mainline v2.4.0 and v2.4.1 map to the same sdm845 host configuration and ops.
 - Exact silicon HW version register value remains unmeasured; runtime detection remains authoritative.
+
+### Stage 131 update
+- Added `STAGE131-DRM-SUSPEND-SHUTDOWN-LIFECYCLE.md`: DPU suspend prepare uses `drm_mode_config_helper_suspend()`; DPU shutdown calls `drm_atomic_helper_shutdown()`.
+- This qualifies the earlier candidate K7 MIPI-DSI shutdown callback: normal DRM shutdown already drives K7 atomic OFF and host/PHY teardown, so no second callback is proposed without evidence of an uncovered path.
