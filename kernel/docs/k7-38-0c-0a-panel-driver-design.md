@@ -82,18 +82,8 @@ Implemented, compiled and linked (not yet used by a panel driver):
 - K7 ON and OFF command tables are explicitly `dsi_lp_mode`. The 60/90 refresh command tables are explicitly `dsi_hs_mode`. The separate DSC PPS packet is `DTYPE_PPS`, VC0, last=1, 10 ms wait, and LP mode.
 - The panel must keep global `MIPI_DSI_MODE_LPM` clear because it needs both LP initialization/PPS and HS refresh transactions. Send init/off messages with per-message `MIPI_DSI_MSG_USE_LPM`; send the four-message refresh batch with flags clear. Send PPS with per-message LPM (or temporarily set the device LPM flag only around the PPS helper).
 - Set DSI mode to video + burst, 4 lanes, 
-[... 11476 bytes omitted ...]
--1p2` from PM6125 L18A at 1.232 V and a separate `refgen` supply. Downstream DSI PHY requests `vdda-0p9` from PM6125 L4A at 0.88 V (36 mA). Khaje regulator overlay constrains L4A to 0.72–1.05 V/init 0.88 V and L18A to 1.10–1.30 V/init 1.232 V. These are the correct *vendor board reference* values, but still need to be connected to the mainline consumer interfaces carefully.
-- Mainline SM6225 DSI host matches the SDM845 DSI config for base 0x5e94000, whose regulator list requests `vdda` and `refgen`; the SPES board currently has neither `vdda-supply` nor `refgen-supply` on `&mdss_dsi0` and its PM6125 RPM node has no L18 rail entry. Therefore the current mainline DSI host regulator acquisition is not yet board-complete.
-- Mainline `qcom,sm6375-dsi-phy-7nm` selects `dsi_phy_7nm_6375_cfgs`, which currently has no regulator_data entry, despite the downstream Khaje PHY declaring external 0.9 V `vdda-0p9`. The mainline PHY driver currently does not request a `vdds` rail for this compatible. Do not simply add a DT `vdds-supply` and assume it is consumed; this needs a deliberate PHY-driver/compatible review or confirmation that the SoC PHY's own supply arrangement is correct.
-- Downstream `qcom,refgen-kona-regulator` is not an upstream compatible in `drivers/regulator/qcom-refgen-regulator.c`; upstream supports IPQ9650, SDM845 and SM8250 refgen variants. Do not add the downstream compatible to the SPES mainline DT without a supported provider driver. The host's `refgen` supply therefore remains an unresolved provider dependency.
-- The current board has no PM6125 L4/L18 nodes. A comparable SM6225 board has L4=0.9V and L18=1.2V rail entries and uses them for UFS/CSI, but this does not prove SPES board consumers or power-tree topology. No new L4/L18 consumer or regulator entries were added in this stage.
-
-Stage 97 decision:
-
-- Pixel/byte/PLL/OPP rates are structurally within the existing mainline limits for fixed 90 Hz.
-- Do not enable MDSS/DSI/PHY or alter regulator graph yet. Missing/unsupported DSI host `vdda`/`refgen` provider mapping and the 7-nm PHY external 0.9 V supply discrepancy must be resolved first, then full DT schema and clock/power sequencing validated.
-- No source/DTS edits or rebuild in Stage 97. No panel enablement, module staging, Recovery ZIP, flash, release, commit or push.
+[... 13717 bytes omitted ...]
+ 97. No panel enablement, module staging, Recovery ZIP, flash, release, commit or push.
 
 ## Mainline REFGEN provider and DSI controller L18 supply wiring (stage 98)
 
@@ -208,3 +198,12 @@ Stage 101 decision:
 - This confirms a coherent software path for one DSC block / one PingPong / one DSI interface. It does not prove that silicon routing, DSI PHY link, or panel timing works on the physical SPES board.
 - Important test gate: the first controlled hardware boot must capture DPU CTL flush masks, DSI video-done/underrun interrupts, DSI PHY PLL lock and panel response. Do not enable the graph as a blind source change.
 - No source/DTS changes and no rebuild in Stage 108. MDSS, DSI0 and PHY remain disabled.
+
+## Stage 109 — DSI video-mode, panel initialization and first-kickoff ordering
+
+- DRM atomic helper order in this tree is: CRTC atomic enable → bridge-chain pre-enable → encoder atomic enable → bridge-chain atomic enable. The K7 bridge sets `pre_enable_prev_first`, so the DSI manager host pre-enable runs before the panel pre-enable.
+- DSI manager pre-enable powers the DSI host/PHY and enables the host video-mode control. The K7 panel pre-enable then asserts LCM enable/reset, sends the vendor ON command table, sends the 128-byte PPS in LP mode, and waits 10ms. The DPU encoder atomic-enable configures/enables its timing path; K7 bridge atomic-enable then submits the 90Hz HS command batch. DPU KMS `flush_commit` calls `dpu_crtc_commit_kickoff()` after the modeset-enable stage, which runs encoder prepare/kickoff and CTL flush/start. Thus panel ON/PPS and refresh selection are ordered before the first DPU kickoff in the standard MSM commit path.
+- While video mode is selected, MSM DSI command transfer temporarily enables command mode and restores the saved DSI control afterward. If the video engine is busy, the host waits for VIDEO_DONE (70ms timeout) and a 2–4ms BLLP guard. Single commands and grouped transfers are rejected if their encoded byte count exceeds one horizontal blanking period; the K7 PPS is 128 bytes and the four-command refresh batch is checked as one group.
+- Known limitation: DRM bridge `atomic_pre_enable` / `atomic_enable` callbacks are `void`. If K7 power-on, ON-table or PPS transfer fails, the driver records `last_error` and powers the panel down; the later K7 atomic-enable avoids refresh writes, but the generic DRM commit path has no return channel here to veto DPU kickoff. This must be treated as a controlled-test failure condition, not as successful panel initialization.
+- The host video-mode bit being enabled before panel initialization is intentional in the current bridge order to establish the DSI link state; command transfers use the host's video/BLLP wait path. Whether the physical SM6225 controller and K7 panel tolerate the complete sequence is still a hardware test requirement.
+- No source/DTS changes and no rebuild in Stage 109. MDSS, DSI0 and PHY remain disabled.
