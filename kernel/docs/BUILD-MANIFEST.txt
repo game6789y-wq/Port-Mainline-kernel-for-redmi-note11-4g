@@ -216,3 +216,8 @@ Stage 131 — DRM suspend/shutdown lifecycle audit (2026-11-14)
 - Confirmed DPU suspend prepare calls drm_mode_config_helper_suspend() before system-sleep forced DSI/PHY PM; DPU shutdown calls drm_atomic_helper_shutdown() when DRM is registered.
 - This qualifies the earlier candidate K7 MIPI-DSI shutdown callback: existing DRM atomic shutdown should already issue K7 OFF and host/PHY teardown. No second callback proposed without evidence of an uncovered partial-probe path.
 - No source/DT change, build or hardware test.
+
+Stage 132 — DRM suspend/restore error-path audit (2026-11-14)
+- Confirmed mode-config suspend snapshots and disables display state, returning failures to DPU PM prepare; resume restores state in DPU complete after device resume.
+- Shutdown uses atomic disable-all; K7 DCS OFF is best-effort and transfer failure does not guarantee panel acceptance.
+- No source/DT change, build or hardware test.
