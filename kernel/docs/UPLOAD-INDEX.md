@@ -27,6 +27,7 @@ Target: Xiaomi Redmi Note 11 4G (SPES, Qualcomm SM6225)
 - `STAGE134-FULL-BUILD-PATCH-INTEGRATION.md` — records the initial full Image/modules integration build.
 - `STAGE135-DSI-HOST-SNAPSHOT-PM-FIX.md` — expands the patch to guard snapshot register reads and records the updated W=1/full-build verification.
 - `STAGE136-K7-MODULE-STAGING-FIX.md` — records the missing K7 `.ko` staging fix, regenerated depmod metadata and module autoload verification.
+- `STAGE137-DISPLAY-MODULE-AUTOLOAD-AUDIT.md` — verifies MSM aliases for DSI/PHY/MDSS/DPU and K7/REFGEN module dependencies.
 - `../patches/drafts/0001-msm-dsi-host-runtime-pm-unwind.patch` — draft code patch; requires developer sign-off and has not been applied.
 
 ## Apply the source patch
@@ -147,3 +148,7 @@ The 54.7 MB kernel Image and other build outputs remain in the build workspace. 
 ### Stage 136 update
 - Found and corrected missing K7 panel `.ko` in the staging tree; rebuilt from unpatched source, ran `modules_install` and `depmod`.
 - Verified K7 OF alias and dependency chain with `modprobe --show-depends`; staging now has 1,681 modules and zero FPC modules.
+
+### Stage 137 update
+- Verified the staged MSM module resolves SPES DSI0 through its `qcom,mdss-dsi-ctrl` fallback alias, plus SM6375 PHY, SM6225 MDSS and DPU aliases.
+- Confirmed K7 and REFGEN provider aliases/dependency chains are present; this is staging metadata validation, not a device boot test.
