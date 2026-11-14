@@ -110,3 +110,10 @@ Stage 110 shutdown / ESD / DSI error audit:
 - No K7 DCS 0x0A status/ESD worker exists (vendor expected value 0x9D). Host RX support exists but K7 does not use it; response parser may return zero for ACK/error or invalid packets, so caller must verify exact response.
 - DSI error IRQ collects PLL/FIFO/ACK/timeout/status/lane errors; worker only resets on MDP FIFO underflow and logs/re-enables IRQ for other classes. No automatic PLL/lane or panel ESD recovery.
 - Future ESD worker must be serialized/cancellable, read exactly one byte 0x9D, stop before panel OFF, and avoid blind reset. No source/DTS changes or rebuild; display graph remains disabled.
+
+Stage 111 K7 ESD read/lifecycle audit:
+- Generic DCS read returns host byte count; MSM one-byte short response copies byte 1 and returns exactly 1. ACK/error and invalid response packet types return 0; failed/short read must not be interpreted as healthy status.
+- K7 expected DCS 0x0A value is 0x9D. Future monitor must require `ret == 1 && status == 0x9D`; classify all other outcomes as failed/mismatch.
+- Host command transfer uses cmd_mutex, but power-off uses dev_mutex and does not take cmd_mutex; power_on check precedes cmd_mutex. Asynchronous monitor must be synchronously cancelled/drained by DRM lifecycle before host shutdown.
+- Never call cancel_delayed_work_sync while holding K7 ctx->lock; cancel outside lock, then lock and OFF/power-down. Add a stopping state to prevent worker re-arm. Observation-only first; no blind reset/recovery.
+- Stage 111 is source-level design audit only. No source/DTS changes, no rebuild, no hardware validation; MDSS/DSI0/PHY remain disabled.

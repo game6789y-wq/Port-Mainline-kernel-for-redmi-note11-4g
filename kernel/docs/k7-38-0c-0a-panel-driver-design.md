@@ -81,9 +81,103 @@ Implemented, compiled and linked (not yet used by a panel driver):
 
 - K7 ON and OFF command tables are explicitly `dsi_lp_mode`. The 60/90 refresh command tables are explicitly `dsi_hs_mode`. The separate DSC PPS packet is `DTYPE_PPS`, VC0, last=1, 10 ms wait, and LP mode.
 - The panel must keep global `MIPI_DSI_MODE_LPM` clear because it needs both LP initialization/PPS and HS refresh transactions. Send init/off messages with per-message `MIPI_DSI_MSG_USE_LPM`; send the four-message refresh batch with flags clear. Send PPS with per-message LPM (or temporarily set the device LPM flag only around the PPS helper).
-- Set DSI mode to video + burst, 4 lanes, 
-[... 15291 bytes omitted ...]
-y-7nm.yaml` already defines `vdds-supply` for the 0.9V PHY rail, but `dsi_phy_7nm_6375_cfgs` previously had no regulator_data and therefore did not acquire or enable this supply.
+- Set DSI mode to video + burst, 4 lanes, RGB888. Do not set `MIPI_DSI_MODE_DSC_ALL_SLICES_IN_PKT`: vendor uses one DSC slice per packet (`slice_per_pkt=1`). Do not disable EoT because vendor explicitly appends EoT packets.
+- Set `dsi->dsc` before `mipi_dsi_attach()`: DSC 1.1 pre-SCR, 8 bpc, `bits_per_pixel = 8 << 4`, slice 540x20, slice_count=2, block prediction enabled. The MSM DSI host attach stores this pointer.
+- The MSM host calls `dsi_populate_dsc_params()` from its timing setup after the adjusted DRM mode is installed. It fills `pic_width`/`pic_height`, line buffer depth, RC model, transmit/decoder delay, scale values and computed BPG/RC parameters. Because the DSI manager pre-enable powers/configures the host before the downstream panel bridge pre-enable (`pre_enable_prev_first=true`), the panel bridge can pack the fully populated `dsi->dsc` into PPS during its pre-enable callback.
+- Use `drm_dsc_pps_payload_pack()` on the computed `dsi->dsc`, then transmit a 128-byte `MIPI_DSI_PICTURE_PARAMETER_SET` message in LP mode and wait 10 ms. The PPS is separate from the 45-packet ON table and follows it, as in the vendor implementation.
+
+## DRM bridge shutdown ordering and initial refresh scope (added at stage 91)
+
+- With panel bridge after MSM DSI manager bridge and `pre_enable_prev_first=true`, atomic pre-enable runs DSI host first, then K7 panel. Atomic disable runs in reverse chain order, so K7 panel receives `.atomic_disable()` before encoder disable. Atomic post-disable normally runs forward, but the panel bridge's `pre_enable_prev_first` causes its `.atomic_post_disable()` to run before the previous DSI manager bridge's `.atomic_post_disable()`. Thus K7 can send DCS display-off/sleep-in while host is still active, then sequence reset/enable/LCM rail down before MSM DSI host is disabled and PHY powered off.
+- The exact intended callbacks are: `.atomic_pre_enable()` power/reset/init/PPS; `.atomic_enable()` HS refresh selection before DPU kickoff; `.atomic_disable()` DCS off sequence; `.atomic_post_disable()` panel reset/enable/rail shutdown. Host/encoder ordering is source-confirmed.
+- A 60-to-90 or 90-to-60 change represented as a normal full modeset will invoke disable/post-disable and pre-enable/enable; the panel will power-cycle and run its full initialization sequence. This can be used for initial functional testing but is not seamless dynamic refresh and may visibly blank the screen.
+- Initial bring-up should expose only one fixed mode (prefer 90 Hz once the 90 Hz clock/PHY path is validated) and keep the refresh-batch code available but unused, or explicitly document full-power-cycle switching if both modes are temporarily exposed. Do not advertise seamless 60/90 until an MSM/DPU pre-kickoff hook is added for refresh-only commits.
+
+## SPES GPIO and DCS backlight details (added at stage 92)
+
+- Mainline SPES includes `pm6125.dtsi`, whose PM6125 SPMI GPIO provider is `qcom,pm6125-gpio` with nine GPIOs. Use physical PMIC GPIO9 in the DT specifier (`<&pm6125_gpios 9 GPIO_ACTIVE_HIGH>`); the upstream SPMI GPIO translator handles the physical-to-chip offset.
+- Vendor K7 panel enable is PM6125 physical GPIO9, active high. The separate LCM 1.8V enable is TLMM GPIO54, active high. Vendor pinctrl active state: GPIO mode, 2 mA, pull-up, output-high; suspend state: GPIO mode, 2 mA, pull-down, output-low. Do not model GPIO54 as PM6125 L9 regulator supply.
+- Reset is TLMM GPIO82, with vendor sequence high 10 ms, low 10 ms, high 10 ms. Active pad setting is GPIO mode, 8 mA, no pull; suspend uses 2 mA pull-down. The Mainline SM6115 TLMM pinctrl supports GPIO54 and GPIO82. The panel driver should own these states on the panel node and select active/suspend at panel power transitions.
+- Vendor modern Techpack confirms DCS brightness uses a 16-bit brightness value and `bl_inverted_dbv` swaps its two bytes: `((level & 0xff) << 8) | (level >> 8)`. K7 max brightness is 2047, min 1, DCS backlight. The legacy framebuffer helper's one-byte `0x51` path is not the authoritative modern implementation; port the 16-bit behavior.
+- PM6125 GPIO provider exists in Mainline, but the external LCM 1.8V electrical rail/load switch still lacks schematic proof. The GPIO54 active/suspend state is vendor-source evidence; keep L9 disconnected from panel supply until proven.
+
+## TE source and brightness helper mapping (added at stage 93)
+
+- Vendor Khaje pinctrl selects GPIO81 function `mdp_vsync` in both active and suspend states, 2 mA with pull-down. Vendor does not set `qcom,te-source` on the K7 panel endpoint. Mainline DPU defaults to `DPU_VSYNC_SOURCE_GPIO_0` (`mdp_vsync_p`) when that property is absent. Keep the endpoint property absent and mux TLMM GPIO81 to `mdp_vsync`; do not invent a non-existent `qcom,te-source` string.
+- Mainline `mipi_dsi_dcs_set_display_brightness_large()` transmits the 16-bit value big-endian. This exactly matches modern Vendor Techpack's `bl_inverted_dbv` byte-swap followed by its little-endian `mipi_dsi_dcs_set_display_brightness()` helper. Therefore the K7 backlight driver can call the Mainline `*_large()` helper directly with the logical 0..2047 level; do not byte-swap a second time.
+- Brightness updates must be deferred while the panel is unprepared/disabled and applied after panel enable. The backlight interface should expose min 1 and max 2047; zero remains the off/blank state.
+
+## Initial K7 fixed-90-Hz bridge driver implementation (stage 94)
+
+Implemented source (not enabled in SPES DTS):
+
+- `drivers/gpu/drm/panel/panel-k7-38-0c-0a.c` is a standalone DRM bridge, not a `drm_panel`, to preserve per-commit refresh state and own the required callback ordering.
+- Embeds the exact 570-byte / 45-packet vendor ON command table and the exact two-packet OFF table. It validates descriptor lengths/VC/ACK/last flags and preserves each packet type and wait. The ON array was programmatically compared byte-for-byte with the Vendor DTS.
+- Configures `dsi->dsc` before attach for DSC 1.1, 8bpc/8bpp, 540x20, two slices, block prediction. Panel pre-enable packs the computed host-populated DSC config into a 128-byte PPS and sends it in LP mode after the ON table.
+- Uses per-message LP for init/off/PPS, HS for the four-packet 90-Hz sequence through native `mipi_dsi_device_transfer_multi()`, and 16-bit DCS brightness through `mipi_dsi_dcs_set_display_brightness_large()` (temporarily LP).
+- Uses PMIC `enable-gpios` for physical GPIO9, TLMM `reset-gpios` GPIO82, and `default`/`sleep` pinctrl states for GPIO54 LCM 1.8V enable, GPIO82 reset pad and GPIO81 MDP_VSYNC. No PM6125 L9 regulator link is added.
+- Exposes only a fixed 1080x2400 90-Hz mode (clock 339702 kHz, H total 1552, V total 2432). It intentionally does not expose 60 Hz or claim seamless switching. It implements panel off/power-down callback order and a fail-safe panel shutdown if the 90-Hz command batch fails.
+- Added `CONFIG_DRM_PANEL_XIAOMI_K7_38_0C_0A` and Makefile integration, plus binding `Documentation/devicetree/bindings/display/panel/xiaomi,k7-38-0c-0a.yaml`.
+
+Verification:
+
+- `W=1` panel object compilation passed.
+- `make modules` exited 0; `panel-k7-38-0c-0a.ko` linked, has OF aliases for `xiaomi,k7-38-0c-0a`, and modpost resolved the exported `mipi_dsi_device_transfer_multi` symbol. No matching compiler warning/error or modpost diagnostic.
+- `dt-doc-validate` passes for the new binding. `dt_binding_check` remains blocked before processing this binding by the installed dtschema 2024.4 internal error (`AttributeError: 'bool' object has no attribute 'pop'`), previously encountered on the full schema set. Do not claim full schema/example validation.
+
+Remaining before enabling: inspect bridge probe/attach ordering on a real DT, verify the GPIO54/PMIC9 electrical behavior and DSI PHY/90-Hz clocks, verify PPS and panel-on sequence on hardware, and decide ESD diagnostic integration. No panel node or display `status = "okay"` has been added; no module staging, flash, Recovery ZIP, release, commit or push.
+
+## Safe default pinctrl correction (stage 95)
+
+- Linux device core automatically selects the `default` pinctrl state before the panel driver's probe callback. Therefore `default` must not drive GPIO54 high. The binding now requires three states: `default` (safe/low), `active` (GPIO54 high with active reset/TE pad configuration), and `sleep` (safe/low). The driver explicitly selects `active` only in panel pre-enable and selects `sleep` at probe and post-disable.
+- This prevents the LCM 1.8V enable from briefly asserting merely because the DSI child device was probed. GPIO9 panel-enable and GPIO82 reset remain requested output-low initially.
+- `dt-doc-validate` passes. Full `make modules` after this correction exited 0 and linked the updated panel module. No panel DTS node is present yet.
+
+## SPES board-level K7 panel graph added without enabling display (stage 96)
+
+- Added K7 pinctrl groups to `sm6225-xiaomi-spes.dtsi`: GPIO54 default/sleep low and active high; GPIO82 reset active 8mA/no-pull and sleep 2mA/pull-down; GPIO81 `mdp_vsync` 2mA/pull-down in active/sleep.
+- Added the K7 panel child under `&mdss_dsi0` with `compatible`, `reg=<0>`, PM6125 physical GPIO9 `enable-gpios`, TLMM GPIO82 `reset-gpios`, and the required default/active/sleep pinctrl states. Added reciprocal panel/DSI0 graph endpoints and explicit four-lane mapping.
+- Critically, no `status = "okay"` was added. Effective compiled DTB inspection confirms MDSS parent, DSI0 and DSI PHY0 all remain `status = "disabled"`; therefore the panel driver cannot probe and GPIO54/PMIC9 will not be driven by this disabled display graph.
+- Target DTB compiled with DTC, Exit Code 0, no DTC warning/error. `dt-doc-validate` passes. Full `dt_binding_check` remains blocked by the dtschema 2024.4 internal error described above.
+- DTB SHA256 after adding the dormant panel graph: recorded in build manifest. No runtime hardware test or display enablement.
+
+## SM6225/Khaje display clocks, OPP and analog-rail audit (stage 97)
+
+Clock-rate calculation for the fixed K7 mode (1080x2400, H total 1552, V total 2432, 90 Hz, DSC 8 bpp, four DSI data lanes):
+
+- Pixel clock: 339.702 MHz (matches the mode clock in the K7 driver).
+- Mainline `dsi_byte_clk_get_rate()` computes the DSC-adjusted host pixel clock times RGB888 bpp divided by (8 * lanes); the corrected result is 136.581216 MHz (Stage 103).
+- The prior 679.404Mbps/lane estimate is superseded by Stage 103. The corrected host-derived estimate is 1.09265Gbps/lane; the PHY VCO min/max does not itself validate this lane rate.
+- Mainline DSI OPP table has 187.5, 300 and 358 MHz. Mode validation uses `dev_pm_opp_find_freq_ceil()` on byte clock; 84.93 MHz is covered by the first 187.5 MHz OPP. Runtime DSI host uses `dev_pm_opp_set_rate()` on the byte clock.
+- Mainline DPU OPP table has 19.2, 200, 300, 383, 470 and 560 MHz; 339.7 MHz is below its 383 MHz level and 560 MHz maximum. This is a structural rate check, not a measured PLL lock or bandwidth test.
+- `dispcc-sm6225.c` has the expected MDSS byte0, pixel0 and MDP clock objects; SM6225 SoC DTS already wires DSI byte/pixel sources to DSI PHY output clocks and the display controller to the MDSS clocks. The SoC-level display graph has a coherent upstream clock topology.
+
+Analog supply findings / blockers:
+
+- The active downstream SPES overlay is `spes-khaje-idp-nopmi-overlay.dts`, with MSM ID 518, board ID 0x20022 and PMIC ID 0x2D. It includes the Khaje IDP display stack.
+- Downstream Khaje DSI controller requests `vdda-1p2` from PM6125 L18A at 1.232 V and a separate `refgen` supply. Downstream DSI PHY requests `vdda-0p9` from PM6125 L4A at 0.88 V (36 mA). Khaje regulator overlay constrains L4A to 0.72–1.05 V/init 0.88 V and L18A to 1.10–1.30 V/init 1.232 V. These are the correct *vendor board reference* values, but still need to be connected to the mainline consumer interfaces carefully.
+- Mainline SM6225 DSI host matches the SDM845 DSI config for base 0x5e94000, whose regulator list requests `vdda` and `refgen`; the SPES board currently has neither `vdda-supply` nor `refgen-supply` on `&mdss_dsi0` and its PM6125 RPM node has no L18 rail entry. Therefore the current mainline DSI host regulator acquisition is not yet board-complete.
+- Mainline `qcom,sm6375-dsi-phy-7nm` selects `dsi_phy_7nm_6375_cfgs`, which currently has no regulator_data entry, despite the downstream Khaje PHY declaring external 0.9 V `vdda-0p9`. The mainline PHY driver currently does not request a `vdds` rail for this compatible. Do not simply add a DT `vdds-supply` and assume it is consumed; this needs a deliberate PHY-driver/compatible review or confirmation that the SoC PHY's own supply arrangement is correct.
+- Downstream `qcom,refgen-kona-regulator` is not an upstream compatible in `drivers/regulator/qcom-refgen-regulator.c`; upstream supports IPQ9650, SDM845 and SM8250 refgen variants. Do not add the downstream compatible to the SPES mainline DT without a supported provider driver. The host's `refgen` supply therefore remains an unresolved provider dependency.
+- The current board has no PM6125 L4/L18 nodes. A comparable SM6225 board has L4=0.9V and L18=1.2V rail entries and uses them for UFS/CSI, but this does not prove SPES board consumers or power-tree topology. No new L4/L18 consumer or regulator entries were added in this stage.
+
+Stage 97 decision:
+
+- Pixel/byte/PLL/OPP rates are structurally within the existing mainline limits for fixed 90 Hz.
+- Do not enable MDSS/DSI/PHY or alter regulator graph yet. Missing/unsupported DSI host `vdda`/`refgen` provider mapping and the 7-nm PHY external 0.9 V supply discrepancy must be resolved first, then full DT schema and clock/power sequencing validated.
+- No source/DTS edits or rebuild in Stage 97. No panel enablement, module staging, Recovery ZIP, flash, release, commit or push.
+
+## Mainline REFGEN provider and DSI controller L18 supply wiring (stage 98)
+
+- Inspected the downstream Khaje `qcom,refgen-kona-regulator` implementation: it toggles bit 0 at REFGEN register offset 0x80 to enable/disable and reads the same bit for state. Upstream `qcom,sm8250-refgen-regulator` uses the same register, mask and enable/disable values. The existing upstream provider is therefore an exact register-operation match for this Kona REFGEN block.
+- Added a SPES REFGEN provider at SoC address 0x01600000 size 0x84 using `compatible = "qcom,sm8250-refgen-regulator"`, with 5ms ramp delay. No downstream-only proxy properties or self-referential proxy supply were copied.
+- Added PM6125 L18 as fixed 1.232 V with adjustable load and wired DSI controller `vdda-supply` to L18 and `refgen-supply` to the REFGEN provider. This matches Khaje's vendor `vdda-1p2-supply = <&L18A>` at 1.232 V and separate refgen consumer.
+- DSI host provider is a built module (`qcom-refgen-regulator.ko`, CONFIG_REGULATOR_QCOM_REFGEN=m) with OF alias for `qcom,sm8250-refgen-regulator`.
+- Target SPES DTB compiles without DTC warnings/errors. `dt-doc-validate` passes for the upstream REFGEN schema. Effective DTB still has MDSS/DSI0/PHY disabled; no rail is requested by the dormant host.
+
+## Mainline SM6375-compatible 7nm PHY 0.9V supply integration for SPES (stage 99)
+
+- Downstream Khaje panel stack explicitly supplies the 7nm DSI PHY from PM6125 L4A at 0.88 V and 36 mA. Upstream `qcom,dsi-phy-7nm.yaml` already defines `vdds-supply` for the 0.9V PHY rail, but `dsi_phy_7nm_6375_cfgs` previously had no regulator_data and therefore did not acquire or enable this supply.
 - Added the existing 36mA 7nm PHY regulator descriptor to `dsi_phy_7nm_6375_cfgs`; this uses the driver's standard `vdds` supply name and 36mA load, matching the vendor board requirement.
 - Added PM6125 L4 to SPES at fixed 0.88 V with adjustable load and wired `&mdss_dsi0_phy` `vdds-supply` to it. The SM6375-compatible PHY is only used by the SM6225 SoC DTS in this source tree, so the config change is scoped to the target implementation rather than changing a shared PHY config used by other SoCs.
 - `make modules` completed Exit Code 0; MSM DRM module linked with updated PHY object and expected `qcom,sm6375-dsi-phy-7nm` OF alias. No compiler/modpost diagnostics.
@@ -204,3 +298,14 @@ Stage 101 decision:
 - DSI controller error IRQ records PLL-unlocked, FIFO, ACK, timeout, status and lane-0 PHY errors. The worker currently software-resets only for MDP FIFO underflow, logs the collected state and re-enables the error IRQ. It does not automatically recover PLL unlock / lane errors or panel ESD.
 - Recommendation for a later implementation: add a serialized, cancellable K7 status-read worker using DCS 0x0A and require exactly one returned byte equal to 0x9D; suspend it before OFF/power-down; report mismatch/read failure without an unsafe blind reset. Recovery policy must be designed and hardware-tested separately.
 - No source/DTS changes and no rebuild in Stage 110. MDSS, DSI0 and PHY remain disabled; ESD/first-frame behavior remains unverified.
+
+## Stage 111 — K7 ESD read semantics and safe worker lifecycle
+
+- The generic `mipi_dsi_dcs_read()` constructs a one-byte DCS read request and returns the host transfer result. For a one-byte short response, the MSM parser copies response byte 1 into the caller buffer and returns exactly `1`; callers must reject every other return value and compare the byte to the vendor expected status `0x9D`.
+- The MSM RX parser currently returns `0` for `MIPI_DSI_RX_ACKNOWLEDGE_AND_ERROR_REPORT` and for an unrecognized response data type. A zero return is therefore not a healthy status value. A short/failed DMA read can also return zero; a transport error may be negative. K7 ESD logic must treat `ret != 1` as a failed read and must not inspect an uninitialized status byte.
+- `dsi_host_transfer()` serializes command transactions with `cmd_mutex` and checks `power_on` before acquiring that mutex. Host power-off is serialized separately with `dev_mutex` and does not take `cmd_mutex`. Therefore the host's transfer-side power check alone is not a sufficient lifetime guarantee for an asynchronous panel worker; the DRM bridge lifecycle must stop and drain the worker before host shutdown.
+- K7's existing `ctx->lock` serializes panel commands and power transitions. A worker that takes this mutex before issuing DCS read is compatible with the existing panel serialization, but cancellation must happen before a callback takes `ctx->lock`: calling `cancel_delayed_work_sync()` while holding that mutex could deadlock if the worker is waiting for it. The safe pattern is cancel/drain outside the panel mutex, then take the mutex and perform OFF/power-down. Re-arming must occur only after successful ON/PPS and successful first refresh setup.
+- The worker must also be prevented from re-arming after shutdown begins. A dedicated stopping/active state protected consistently with the panel mutex is required; probe/remove and every disable/failure path must synchronously cancel the delayed work before detaching the DSI device. The worker must never run after `atomic_disable` starts the OFF sequence or after host power-off.
+- The current MSM host command path does not provide an independent lifetime reference to `power_on`; the design must rely on the DRM bridge's synchronous cancellation ordering rather than assuming `cmd_mutex` prevents power-off races. Lock ordering must remain: cancel/drain without `ctx->lock`, then panel mutex, then host transfer's internal command mutex.
+- Initial implementation should be observation-only: read DCS `0x0A` in LP mode at a conservative interval while the panel is confirmed enabled; accept only exactly one byte equal to `0x9D`; log/count mismatch, short response, ACK/error, timeout and transport failure separately. Do not issue reset, reinitialize, or power-cycle automatically until the panel's recovery sequence and concurrent DRM/backlight behavior are tested on hardware.
+- No worker or source changes were introduced in this stage. This is a lifecycle and API-semantics audit only. No rebuild or hardware test; MDSS, DSI0 and DSI PHY remain disabled.
