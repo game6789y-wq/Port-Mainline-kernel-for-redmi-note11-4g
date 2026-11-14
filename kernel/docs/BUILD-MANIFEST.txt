@@ -146,3 +146,9 @@ Stage 116 Vendor HBM/backlight policy audit:
 - Vendor K7 HBM uses separate LP commands (on: 0x53 F0 + DCS 0x51 07 ff; off: 0x53 30). Vendor explicitly restores the saved brightness after HBM-off because the panel command sets an arbitrary brightness. Mainline K7 has no HBM state machine; keep HBM unsupported until state/restore/serialization and hardware validation exist.
 - Vendor DT backlight range is 1..2047; Mainline exposes 0..2047 to support blanking. Visible low-level minimum requires hardware validation. Project-specific vendor brightness scaling must not be copied without confirming SPES build configuration.
 - Stage 116 audit only; no source/DTS changes, rebuild or hardware test.
+
+Stage 117 — static audit only (2026-11-14)
+- Reviewed K7 backlight enable/disable lifecycle, HBM command sequences, and DRM bridge callback ordering against Vendor and Mainline source.
+- Confirmed normal brightness wire byte order is equivalent; no source change required.
+- HBM remains unsupported in Mainline; vendor HBM-off requires restoring the saved normal brightness.
+- No rebuild or hardware test performed. MDSS/DSI0/DSI PHY remain disabled; FPC remains disabled.

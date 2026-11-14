@@ -58,3 +58,7 @@ The 54.7 MB kernel Image and other build outputs remain in the build workspace. 
 - Audited K7 vendor HBM LP command sequences and the required brightness restore after HBM-off. Mainline has no HBM implementation; keep it unsupported rather than adding unvalidated stateful commands.
 - Recorded vendor 1..2047 metadata vs Mainline 0..2047 blanking behavior and noted project-specific scaling caveat.
 - Static audit only; no source/DTS changes, rebuild or hardware test.
+
+### Stage 117 update
+- `k7-38-0c-0a-panel-driver-design.md`: normal brightness byte-order equivalence, Vendor HBM on/off and brightness restore sequence, Mainline backlight state handling, and DRM bridge enable/disable ordering.
+- `BUILD-MANIFEST.txt`: records Stage 117 as static source audit only; no rebuild or hardware test.
