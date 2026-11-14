@@ -282,3 +282,8 @@ Stage 142 — DT schema validation recovery (2026-11-14)
 Stage 142 validation refinement
 - Target-specific SPES DTB check using CHECK_DTBS=1 + DT_SCHEMA_FILES (six project schemas) completed exit 0 for qcom/sm6225-xiaomi-spes.dtb.
 - Aggregate all-ARM64 dtbs_check remains unrun; full unfiltered dt-validate still reports unrelated UFS/CoreSight schema mismatches.
+
+Stage 143 — targeted SPES DT validator (2026-11-14)
+- Added `kernel/scripts/validate-spes-dt.sh`; it runs six targeted binding checks, CHECK_DTBS=1 for only the SPES DTB with six schema limits, checks MDSS/DSI0/PHY/FPC disabled, and runs git diff --check.
+- Executed successfully with isolated dtschema 2024.11; target DTB SHA-256 is 4eae7c455a7572ac877785d02b79f745c78dc7f63189b57ca32a48380889ff64.
+- This is targeted SPES validation, not aggregate all-ARM64 dtbs_check or hardware validation.
