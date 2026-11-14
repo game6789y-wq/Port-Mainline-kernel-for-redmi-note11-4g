@@ -287,3 +287,7 @@ Stage 143 — targeted SPES DT validator (2026-11-14)
 - Added `kernel/scripts/validate-spes-dt.sh`; it runs six targeted binding checks, CHECK_DTBS=1 for only the SPES DTB with six schema limits, checks MDSS/DSI0/PHY/FPC disabled, and runs git diff --check.
 - Executed successfully with isolated dtschema 2024.11; target DTB SHA-256 is 4eae7c455a7572ac877785d02b79f745c78dc7f63189b57ca32a48380889ff64.
 - This is targeted SPES validation, not aggregate all-ARM64 dtbs_check or hardware validation.
+
+Patch inventory update
+- `kernel/patches/drafts/0001-msm-dsi-host-runtime-pm-unwind.patch`: DSI Host PM error-path draft, W=1 object and full Image/modules integration builds passed; remains unapplied and requires developer sign-off for upstream submission.
+- `kernel/patches/drafts/0002-dt-vendor-prefix-and-example-cleanup.patch`: schema-only FPC vendor-prefix and K7 example cleanup; apply after the main SPES port patch when reproducing the targeted DT validation.
