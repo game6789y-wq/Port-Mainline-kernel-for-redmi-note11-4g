@@ -31,6 +31,9 @@ Target: Xiaomi Redmi Note 11 4G (SPES, Qualcomm SM6225)
 - `STAGE138-PMIC-DISPLAY-POWER-PROVIDER-AUDIT.md` — confirms RPM/SMD and SPMI PMIC regulator/GPIO providers are built in.
 - `STAGE139-SOURCE-MATCHED-BUILD-DTB-STATUS.md` — records current source-matched build hashes, complete module staging and disabled MDSS/DSI/PHY/FPC DT states.
 - `STAGE140-REPRODUCIBLE-BUILD-STAGING-SCRIPT.md` — documents the automated Image/modules/target-DTB build, module install/depmod and required SPES config options.
+- `kernel/scripts/build-spes.sh` — reproducible Image/modules/target-DTB build and module staging helper.
+- `kernel/config/spes-android.config` — config fragment for SPES platform and custom drivers, with FPC explicitly disabled.
+- `kernel/scripts/README.md` — workspace layout, invocation and safety notes for the build helper.
 - `../patches/drafts/0001-msm-dsi-host-runtime-pm-unwind.patch` — draft code patch; requires developer sign-off and has not been applied.
 
 ## Apply the source patch
@@ -166,3 +169,6 @@ The 54.7 MB kernel Image and other build outputs remain in the build workspace. 
 ### Stage 140 update
 - Added reproducible build helper, config fragment and usage guide under `kernel/scripts/` and `kernel/config/`.
 - Executed the updated helper successfully; it builds Image/modules/target DTB, stages modules, regenerates depmod metadata and verifies K7/REFGEN/MSM aliases while excluding FPC.
+
+### Build helper assets
+- Added `kernel/scripts/build-spes.sh`, `kernel/config/spes-android.config` and `kernel/scripts/README.md` to the package; the helper was executed successfully in the Boxadd workspace and refreshed the 1,681-module staging tree.
