@@ -191,3 +191,8 @@ Stage 126 — DSI Host Runtime-PM patch draft (2026-11-14)
 - Drafted `0001-msm-dsi-host-runtime-pm-unwind.patch` for `dsi_get_config()`, `msm_dsi_host_power_on()` and `msm_dsi_host_xfer_prepare()`.
 - `git apply --check` passed against the current SPES port working tree; `checkpatch.pl --strict` reports only missing developer Signed-off-by.
 - Patch uploaded as a draft and is not applied. No compile/build or hardware test. MDSS/DSI0/DSI PHY remain disabled; FPC remains disabled.
+
+Stage 127 — DSI Host PM patch object compile (2026-11-14)
+- Temporarily applied the draft patch and compiled `drivers/gpu/drm/msm/dsi/dsi_host.o` successfully (exit 0).
+- Reversed the patch and verified the source file SHA-256 was identical before/after.
+- Object-only compile; no full Image/modules build or hardware test. Patch remains a draft and unapplied.
