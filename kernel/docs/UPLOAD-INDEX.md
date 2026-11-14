@@ -36,6 +36,8 @@ Target: Xiaomi Redmi Note 11 4G (SPES, Qualcomm SM6225)
 - `STAGE143-TARGETED-DT-VALIDATOR.md` — documents the repeatable targeted SPES binding/DTB validator and disabled-node safety gates.
 - `STAGE145-SC8551-MAINLINE-PORT-AUDIT.md` — initial vendor SC8551 full charger driver port audit.
 - `STAGE146-SC8551-DRIVER-PORT-DEEP-REVIEW.md` — deep review of ADC, protection initialization, DT boolean semantics, Power Supply ABI, IRQ/PM and probe/teardown defects found in the vendor SC8551 driver.
+- `STAGE147-SC8551-ADC-FIXED-POINT-DRAFT.md` — documents the vendor-reference ADC fixed-point/error-check patch and its validation boundary.
+- `../patches/drafts/0003-sc8551-adc-fixed-point-and-error-checks.patch` — draft vendor-driver ADC correction: fixed-point scaling, checked I2C reads, corrected ADC rate mask and channel bounds; not applied to Mainline.
 - `kernel/scripts/build-spes.sh` — reproducible Image/modules/target-DTB build and module staging helper.
 - `kernel/config/spes-android.config` — config fragment for SPES platform and custom drivers, with FPC explicitly disabled.
 - `kernel/scripts/README.md` — build helper and targeted DT validation usage.
