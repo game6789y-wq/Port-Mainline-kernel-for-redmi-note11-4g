@@ -183,3 +183,7 @@ The 54.7 MB kernel Image and other build outputs remain in the build workspace. 
 - Created an isolated dtschema 2024.11 environment; six project-specific `dt_binding_check` targets and six custom-schema validations on the SPES DTB pass.
 - Added the `fpc` vendor prefix and cleaned two K7 binding example node names; these changes do not enable FPC or display hardware.
 - Full-tree validation remains limited by unrelated UFS/CoreSight schema mismatches and all-DTB `dtbs_check` behavior.
+
+### Stage 142 validation refinement
+- Found the kernel-supported targeted DTB check mechanism: `CHECK_DTBS=1` with `DT_SCHEMA_FILES` and the single `qcom/sm6225-xiaomi-spes.dtb` target. It passes with all six project schemas selected.
+- Aggregate all-ARM64 `dtbs_check` remains unrun; no full-tree pass is claimed.
