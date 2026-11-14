@@ -104,3 +104,9 @@ Stage 109 DSI/panel/first-kickoff audit:
 - DSI command transfers temporarily switch CMD_MODE_EN, restore the previous control state, and enforce BLLP payload limits; busy video engine path waits for VIDEO_DONE and a 2-4ms guard.
 - Known limitation: bridge atomic callbacks are void; panel init failure records error and powers down K7 but cannot veto generic DPU kickoff. Must be treated as test failure.
 - Source-level order only; no physical hardware test. No source/DTS changes or rebuild; display graph remains disabled.
+
+Stage 110 shutdown / ESD / DSI error audit:
+- K7 OFF command table is sent in atomic_disable; panel reset and GPIO9 are powered down in atomic_post_disable; DSI host post-disable follows panel due pre_enable_prev_first ordering.
+- No K7 DCS 0x0A status/ESD worker exists (vendor expected value 0x9D). Host RX support exists but K7 does not use it; response parser may return zero for ACK/error or invalid packets, so caller must verify exact response.
+- DSI error IRQ collects PLL/FIFO/ACK/timeout/status/lane errors; worker only resets on MDP FIFO underflow and logs/re-enables IRQ for other classes. No automatic PLL/lane or panel ESD recovery.
+- Future ESD worker must be serialized/cancellable, read exactly one byte 0x9D, stop before panel OFF, and avoid blind reset. No source/DTS changes or rebuild; display graph remains disabled.

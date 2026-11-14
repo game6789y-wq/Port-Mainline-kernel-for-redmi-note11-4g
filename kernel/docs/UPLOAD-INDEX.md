@@ -7,7 +7,7 @@ Target: Xiaomi Redmi Note 11 4G (SPES, Qualcomm SM6225)
 - `spes-mainline-port.patch` — complete source/DTS patch against upstream base revision `c545b9e890d723b5dd0beb6a7a067a0e16088e65`; includes tracked edits and new source/binding/reference files.
 - `BUILD-MANIFEST.txt` — build metadata, validation notes and artifact checksums.
 - `k7-38-0c-0a-panel-command-audit.txt` — K7 panel command-table analysis.
-- `k7-38-0c-0a-panel-driver-design.md` — panel driver design and Stages 1–109 audit notes.
+- `k7-38-0c-0a-panel-driver-design.md` — panel driver design and Stages 1–110 audit notes.
 - `k7-sm6225-display-clock-power-map.md` — display clock and power dependency map.
 - `spes-max77729-sc8551-port-audit.md` — PMIC/charger and related port audit.
 

@@ -82,20 +82,8 @@ Implemented, compiled and linked (not yet used by a panel driver):
 - K7 ON and OFF command tables are explicitly `dsi_lp_mode`. The 60/90 refresh command tables are explicitly `dsi_hs_mode`. The separate DSC PPS packet is `DTYPE_PPS`, VC0, last=1, 10 ms wait, and LP mode.
 - The panel must keep global `MIPI_DSI_MODE_LPM` clear because it needs both LP initialization/PPS and HS refresh transactions. Send init/off messages with per-message `MIPI_DSI_MSG_USE_LPM`; send the four-message refresh batch with flags clear. Send PPS with per-message LPM (or temporarily set the device LPM flag only around the PPS helper).
 - Set DSI mode to video + burst, 4 lanes, 
-[... 13717 bytes omitted ...]
- 97. No panel enablement, module staging, Recovery ZIP, flash, release, commit or push.
-
-## Mainline REFGEN provider and DSI controller L18 supply wiring (stage 98)
-
-- Inspected the downstream Khaje `qcom,refgen-kona-regulator` implementation: it toggles bit 0 at REFGEN register offset 0x80 to enable/disable and reads the same bit for state. Upstream `qcom,sm8250-refgen-regulator` uses the same register, mask and enable/disable values. The existing upstream provider is therefore an exact register-operation match for this Kona REFGEN block.
-- Added a SPES REFGEN provider at SoC address 0x01600000 size 0x84 using `compatible = "qcom,sm8250-refgen-regulator"`, with 5ms ramp delay. No downstream-only proxy properties or self-referential proxy supply were copied.
-- Added PM6125 L18 as fixed 1.232 V with adjustable load and wired DSI controller `vdda-supply` to L18 and `refgen-supply` to the REFGEN provider. This matches Khaje's vendor `vdda-1p2-supply = <&L18A>` at 1.232 V and separate refgen consumer.
-- DSI host provider is a built module (`qcom-refgen-regulator.ko`, CONFIG_REGULATOR_QCOM_REFGEN=m) with OF alias for `qcom,sm8250-refgen-regulator`.
-- Target SPES DTB compiles without DTC warnings/errors. `dt-doc-validate` passes for the upstream REFGEN schema. Effective DTB still has MDSS/DSI0/PHY disabled; no rail is requested by the dormant host.
-
-## Mainline SM6375-compatible 7nm PHY 0.9V supply integration for SPES (stage 99)
-
-- Downstream Khaje panel stack explicitly supplies the 7nm DSI PHY from PM6125 L4A at 0.88 V and 36 mA. Upstream `qcom,dsi-phy-7nm.yaml` already defines `vdds-supply` for the 0.9V PHY rail, but `dsi_phy_7nm_6375_cfgs` previously had no regulator_data and therefore did not acquire or enable this supply.
+[... 15291 bytes omitted ...]
+y-7nm.yaml` already defines `vdds-supply` for the 0.9V PHY rail, but `dsi_phy_7nm_6375_cfgs` previously had no regulator_data and therefore did not acquire or enable this supply.
 - Added the existing 36mA 7nm PHY regulator descriptor to `dsi_phy_7nm_6375_cfgs`; this uses the driver's standard `vdds` supply name and 36mA load, matching the vendor board requirement.
 - Added PM6125 L4 to SPES at fixed 0.88 V with adjustable load and wired `&mdss_dsi0_phy` `vdds-supply` to it. The SM6375-compatible PHY is only used by the SM6225 SoC DTS in this source tree, so the config change is scoped to the target implementation rather than changing a shared PHY config used by other SoCs.
 - `make modules` completed Exit Code 0; MSM DRM module linked with updated PHY object and expected `qcom,sm6375-dsi-phy-7nm` OF alias. No compiler/modpost diagnostics.
@@ -207,3 +195,12 @@ Stage 101 decision:
 - Known limitation: DRM bridge `atomic_pre_enable` / `atomic_enable` callbacks are `void`. If K7 power-on, ON-table or PPS transfer fails, the driver records `last_error` and powers the panel down; the later K7 atomic-enable avoids refresh writes, but the generic DRM commit path has no return channel here to veto DPU kickoff. This must be treated as a controlled-test failure condition, not as successful panel initialization.
 - The host video-mode bit being enabled before panel initialization is intentional in the current bridge order to establish the DSI link state; command transfers use the host's video/BLLP wait path. Whether the physical SM6225 controller and K7 panel tolerate the complete sequence is still a hardware test requirement.
 - No source/DTS changes and no rebuild in Stage 109. MDSS, DSI0 and PHY remain disabled.
+
+## Stage 110 — K7 shutdown, DSI error handling and ESD-read gap
+
+- Normal shutdown order is coherent: K7 bridge `atomic_disable` sends the vendor OFF table while DSI host is still available; K7 `atomic_post_disable` then asserts reset low, disables panel-enable GPIO9 and selects sleep pinctrl; because `pre_enable_prev_first` also changes post-disable ordering, DSI host bridge post-disable/power-off follows the panel.
+- The K7 driver has no ESD/health worker and does not issue DCS register read 0x0A. Vendor K7 configuration expects status 0x9D, so the known panel ESD check is not implemented.
+- MSM DSI host supports command RX, but its response parser returns zero for ACK/error or invalid response packets; callers must validate the expected response byte explicitly. No K7 caller currently performs that check.
+- DSI controller error IRQ records PLL-unlocked, FIFO, ACK, timeout, status and lane-0 PHY errors. The worker currently software-resets only for MDP FIFO underflow, logs the collected state and re-enables the error IRQ. It does not automatically recover PLL unlock / lane errors or panel ESD.
+- Recommendation for a later implementation: add a serialized, cancellable K7 status-read worker using DCS 0x0A and require exactly one returned byte equal to 0x9D; suspend it before OFF/power-down; report mismatch/read failure without an unsafe blind reset. Recovery policy must be designed and hardware-tested separately.
+- No source/DTS changes and no rebuild in Stage 110. MDSS, DSI0 and PHY remain disabled; ESD/first-frame behavior remains unverified.

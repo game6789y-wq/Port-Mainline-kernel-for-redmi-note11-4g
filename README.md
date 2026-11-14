@@ -84,6 +84,7 @@ The priority is to establish correct hardware support and a reproducible kernel 
 - [x] K7 DSC 1.1 PPS parameters, one-slice-per-packet transport and SM6225 one-encoder/two-slice DPU path audited in source.
 - [x] SM6225 DPU DSC → PingPong → INTF → DSI kickoff and CTL flush sequence audited in source.
 - [x] DSI host / K7 panel ON + PPS / 90Hz refresh / first DPU kickoff ordering audited (Stage 109).
+- [x] K7 shutdown order, DSI error IRQ handling and missing panel ESD status-read path audited (Stage 110).
 
 ### Latest build artifacts and validation
 
@@ -97,7 +98,7 @@ The priority is to establish correct hardware support and a reproducible kernel 
 
 **Validation caveat:** binding documentation validation passed with `dt-doc-validate`. Full `dtbs_check` remains blocked by an internal error in the installed dtschema 2024.4 (`AttributeError: 'bool' object has no attribute 'pop'`), so full schema validation is not claimed. `git diff --check` passed.
 
-The latest build manifest and engineering audit are maintained in the development workspace. Static audits confirm the software path configures a 128-byte DSC PPS (type 0x0A, LP mode) after panel initialization, with 540-byte slice chunks and two packets per line. The SM6225 DPU catalog has one DSC block; its software path assigns both slices to that encoder. Source-level follow-up (Stage 108) confirms one DSC_0 / PINGPONG_0 / LM_0 / INTF_1 route to DSI0; DPU configures DSC and PingPong, flushes DSC_0 and INTF_1 through CTL, then starts the encoder. These are source-level findings only, not proof of hardware operation. Stage 109 also records a known error-path limitation: DRM bridge enable callbacks are void, so a K7 initialization failure cannot veto the generic DPU kickoff. Treat any such failure as a hardware-test failure. No Recovery ZIP, installable package or tested release is available.
+The latest build manifest and engineering audit are maintained in the development workspace. Static audits confirm the software path configures a 128-byte DSC PPS (type 0x0A, LP mode) after panel initialization, with 540-byte slice chunks and two packets per line. The SM6225 DPU catalog has one DSC block; its software path assigns both slices to that encoder. Source-level follow-up (Stage 108) confirms one DSC_0 / PINGPONG_0 / LM_0 / INTF_1 route to DSI0; DPU configures DSC and PingPong, flushes DSC_0 and INTF_1 through CTL, then starts the encoder. These are source-level findings only, not proof of hardware operation. Stage 109 also records a known error-path limitation: DRM bridge enable callbacks are void, so a K7 initialization failure cannot veto the generic DPU kickoff. Treat any such failure as a hardware-test failure. Stage 110 confirms that K7 DCS 0x0A ESD status checking (vendor expected 0x9D) is not implemented; DSI error IRQ recovery is also limited and does not automatically recover PLL/lane errors. These remain hardware-test gaps. No Recovery ZIP, installable package or tested release is available.
 
 ### Still pending
 
