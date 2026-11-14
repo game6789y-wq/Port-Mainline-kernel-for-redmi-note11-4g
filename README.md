@@ -61,10 +61,10 @@ The priority is to establish correct hardware support and a reproducible kernel 
 | Pinned source revision | [`c545b9e890d723b5dd0beb6a7a067a0e16088e65`](https://github.com/W-Floyd/linux/commit/c545b9e890d723b5dd0beb6a7a067a0e16088e65) |
 | Kernel version | `7.3.0-rc4` |
 | ARM64 cross-compiler | GCC / AArch64 |
-| Full kernel `Image modules` build | **Completed successfully — exit code 0** (latest recorded build) |
-| Kernel `Image` | Build output present; SHA-256 `de1d6ef64d1870b674c831d90e0c0814cb19351e981aa1f8dfdccbfe96522266` |
+| Full kernel `Image modules` + target DTB build | **Completed successfully — exit code 0** using the reproducible build helper (Stage 140) |
+| Kernel `Image` | Build output present; SHA-256 `3315ba5191cb5a7cdeb3c365cfca7dc24af1e44b9369e7e2d82054058a6e37d4` |
 | `spes` DTB | Latest target build passed; SHA-256 `4eae7c455a7572ac877785d02b79f745c78dc7f63189b57ca32a48380889ff64` |
-| K7 38-0C-0A display bridge | Driver built; 90Hz fixed mode only; no hardware test |
+| Module staging | 1,681 `.ko` files installed with regenerated `modules.dep` / `modules.alias`; K7 and REFGEN modules verified; zero FPC modules |\n| K7 38-0C-0A display bridge | Driver built and staged; 90Hz fixed mode only; no hardware test |
 | Fingerprint | **Intentionally skipped / disabled**; no fingerprint scanning, TEE or HAL work in this porting phase |
 | Redmi Note 11 boot test | Not performed; MDSS, DSI0 and DSI PHY remain disabled in the board DT |
 | Evolution X Android 16 compatibility | Not established |
@@ -90,15 +90,15 @@ The priority is to establish correct hardware support and a reproducible kernel 
 
 | Artifact | SHA-256 | Status |
 |---|---|---|
-| Kernel `Image` | `de1d6ef64d1870b674c831d90e0c0814cb19351e981aa1f8dfdccbfe96522266` | Build output; not boot-tested |
+| Kernel `Image` | `3315ba5191cb5a7cdeb3c365cfca7dc24af1e44b9369e7e2d82054058a6e37d4` | Source-matched build output; not boot-tested |
 | `sm6225-xiaomi-spes.dtb` | `4eae7c455a7572ac877785d02b79f745c78dc7f63189b57ca32a48380889ff64` | DTB build passed; display graph remains dormant |
-| `panel-k7-38-0c-0a.ko` | `8f092d6c81f90e2f818402474bdef8d2f9f8f62abbc5658d3cd76f4c97e525a0` | Module build passed; no hardware test |
+| `drivers/gpu/drm/msm/msm.ko` | `64f070ad98a587d02e6acec52e1a001a3ab2312d18070135e68bbbf57421e6bd` | Source-matched MSM DRM module; not hardware-tested |\n| `panel-k7-38-0c-0a.ko` | `8f092d6c81f90e2f818402474bdef8d2f9f8f62abbc5658d3cd76f4c97e525a0` | Module built and staged; no hardware test |\n| `qcom-refgen-regulator.ko` | `483d00e12a46a5e0d80448e3decb0371aeb9354382bf47bd0d1394a1e43370cf` | Module built and staged; OF alias verified |
 
 **Display engineering notes:** the active stock panel is K7 38-0C-0A, 1080×2400. The port currently targets a fixed 90Hz mode. The corrected Mainline DSI host estimate for the DSC mode is approximately 136.581MHz byte clock and 1.093Gbps per lane; these are calculated values, not measurements. PLL lock, first frame, brightness and ESD behavior have not been validated on the phone.
 
 **Validation caveat:** binding documentation validation passed with `dt-doc-validate`. Full `dtbs_check` remains blocked by an internal error in the installed dtschema 2024.4 (`AttributeError: 'bool' object has no attribute 'pop'`), so full schema validation is not claimed. `git diff --check` passed.
 
-The latest build manifest and engineering audit are maintained in the development workspace. Static audits confirm the software path configures a 128-byte DSC PPS (type 0x0A, LP mode) after panel initialization, with 540-byte slice chunks and two packets per line. The SM6225 DPU catalog has one DSC block; its software path assigns both slices to that encoder. Source-level follow-up (Stage 108) confirms one DSC_0 / PINGPONG_0 / LM_0 / INTF_1 route to DSI0; DPU configures DSC and PingPong, flushes DSC_0 and INTF_1 through CTL, then starts the encoder. These are source-level findings only, not proof of hardware operation. Stage 109 also records a known error-path limitation: DRM bridge enable callbacks are void, so a K7 initialization failure cannot veto the generic DPU kickoff. Treat any such failure as a hardware-test failure. Stage 110 confirms that K7 DCS 0x0A ESD status checking (vendor expected 0x9D) is not implemented; DSI error IRQ recovery is also limited and does not automatically recover PLL/lane errors. These remain hardware-test gaps. No Recovery ZIP, installable package or tested release is available.
+The current build manifest and the Stage 1–140 engineering audit are maintained in [`kernel/docs/UPLOAD-INDEX.md`](kernel/docs/UPLOAD-INDEX.md) and [`kernel/docs/BUILD-MANIFEST.txt`](kernel/docs/BUILD-MANIFEST.txt). Static audits confirm the software path configures a 128-byte DSC PPS (type 0x0A, LP mode) after panel initialization, with 540-byte slice chunks and two packets per line. The SM6225 DPU catalog has one DSC block; its software path assigns both slices to that encoder. Source-level follow-up (Stage 108) confirms one DSC_0 / PINGPONG_0 / LM_0 / INTF_1 route to DSI0; DPU configures DSC and PingPong, flushes DSC_0 and INTF_1 through CTL, then starts the encoder. These are source-level findings only, not proof of hardware operation. Stage 109 also records a known error-path limitation: DRM bridge enable callbacks are void, so a K7 initialization failure cannot veto the generic DPU kickoff. Treat any such failure as a hardware-test failure. Stage 110 confirms that K7 DCS 0x0A ESD status checking (vendor expected 0x9D) is not implemented; DSI error IRQ recovery is also limited and does not automatically recover PLL/lane errors. These remain hardware-test gaps. No Recovery ZIP, installable package or tested release is available.
 
 ### Still pending
 
@@ -183,7 +183,7 @@ Expected primary outputs:
 
 A file existing in the build directory is not sufficient evidence of device compatibility. Each artifact must be checked for the correct target, configuration and source revision.
 
-Build scripts and reproducible instructions will be documented here after they are verified against the current source tree.
+Use the [reproducible SPES build helper](kernel/scripts/build-spes.sh), [SPES config fragment](kernel/config/spes-android.config), and [build usage guide](kernel/scripts/README.md). The helper builds `Image`, modules and the target SPES DTB, installs modules into the isolated staging tree, runs `depmod`, verifies K7/REFGEN/MSM aliases and confirms FPC is excluded.
 
 ## 🛡️ Safety first
 
@@ -232,6 +232,6 @@ The current source snapshot and engineering notes are organized under [kernel/](
 - [K7 panel command audit](kernel/docs/k7-38-0c-0a-panel-command-audit.txt).
 - [K7 panel driver design and Stages 1–108](kernel/docs/k7-38-0c-0a-panel-driver-design.md).
 - [SM6225 display clock/power map](kernel/docs/k7-sm6225-display-clock-power-map.md).
-- [PMIC / SC8551 port audit](kernel/docs/spes-max77729-sc8551-port-audit.md).
+- [PMIC / SC8551 port audit](kernel/docs/spes-max77729-sc8551-port-audit.md).\n- [Latest source-matched build and DTB safety status (Stage 139)](kernel/docs/STAGE139-SOURCE-MATCHED-BUILD-DTB-STATUS.md).\n- [Reproducible build/staging helper (Stage 140)](kernel/docs/STAGE140-REPRODUCIBLE-BUILD-STAGING-SCRIPT.md).\n- [DSI Host Runtime-PM draft patch review (not applied)](kernel/docs/STAGE135-DSI-HOST-SNAPSHOT-PM-FIX.md).
 
 This is a source and engineering snapshot, not a flashable or hardware-validated release. The kernel Image and module binaries remain in the build workspace and are not published as release assets.
