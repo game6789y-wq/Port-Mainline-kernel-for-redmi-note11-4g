@@ -231,3 +231,8 @@ Stage 134 — full Image/modules patch integration build (2026-11-14)
 - Full Image/modules target completed exit 0 with the DSI Host PM draft temporarily applied; DSI Host object, MSM module, MODPOST, vmlinux and ARM64 Image completed.
 - Draft was reversed; DSI Host source SHA-256 before/after is identical. New Image/MSM.ko hashes are recorded in STAGE134-FULL-BUILD-PATCH-INTEGRATION.md.
 - These outputs are temporary patch integration artifacts, not a source-matched release; module staging was not refreshed. No hardware boot/test/flash.
+
+Stage 135 — DSI Host snapshot PM guard and refreshed full build (2026-11-14)
+- Added snapshot-path PM resume checking; the updated draft now covers all four `dsi_host.c` PM acquisitions and avoids register reads if snapshot resume fails.
+- Updated patch passes W=1 DSI Host object compile and full Image/modules build (exit 0); source was restored and SHA-256 matched pre-test.
+- Test Image/MSM module hashes are documented in STAGE135-DSI-HOST-SNAPSHOT-PM-FIX.md; module staging was not refreshed and artifacts are not release outputs.
