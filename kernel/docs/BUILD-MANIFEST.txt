@@ -211,3 +211,8 @@ Stage 130 — Khaje DSI v2.4 mapping (2026-11-14)
 - Vendor Khaje DTS declares DSI0 compatible qcom,dsi-ctrl-hw-v2.4; Mainline v2.4.0 and v2.4.1 both map to sdm845_dsi_cfg/msm_dsi_6g_v2_host_ops for base 0x5e94000.
 - Vendor declaration is family-level evidence only; the raw runtime HW-version register remains unmeasured and runtime detection must remain authoritative.
 - No source/DT change, rebuild or hardware test.
+
+Stage 131 — DRM suspend/shutdown lifecycle audit (2026-11-14)
+- Confirmed DPU suspend prepare calls drm_mode_config_helper_suspend() before system-sleep forced DSI/PHY PM; DPU shutdown calls drm_atomic_helper_shutdown() when DRM is registered.
+- This qualifies the earlier candidate K7 MIPI-DSI shutdown callback: existing DRM atomic shutdown should already issue K7 OFF and host/PHY teardown. No second callback proposed without evidence of an uncovered partial-probe path.
+- No source/DT change, build or hardware test.
