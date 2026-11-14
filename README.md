@@ -219,3 +219,17 @@ This is an independent community research project. It is not affiliated with, en
 <sub>Build success is only one milestone. Verified hardware support is the real measure of progress.</sub>
 
 </div>
+
+## Source package and engineering documents
+
+The current source snapshot and engineering notes are organized under [kernel/](kernel/):
+
+- [Complete source/DTS patch](kernel/patches/spes-mainline-port.patch) — applies to upstream base `c545b9e890d723b5dd0beb6a7a067a0e16088e65`.
+- [Package index and validation caveats](kernel/docs/UPLOAD-INDEX.md).
+- [Build manifest and SHA-256 checksums](kernel/docs/BUILD-MANIFEST.txt).
+- [K7 panel command audit](kernel/docs/k7-38-0c-0a-panel-command-audit.txt).
+- [K7 panel driver design and Stages 1–108](kernel/docs/k7-38-0c-0a-panel-driver-design.md).
+- [SM6225 display clock/power map](kernel/docs/k7-sm6225-display-clock-power-map.md).
+- [PMIC / SC8551 port audit](kernel/docs/spes-max77729-sc8551-port-audit.md).
+
+This is a source and engineering snapshot, not a flashable or hardware-validated release. The kernel Image and module binaries remain in the build workspace and are not published as release assets.
