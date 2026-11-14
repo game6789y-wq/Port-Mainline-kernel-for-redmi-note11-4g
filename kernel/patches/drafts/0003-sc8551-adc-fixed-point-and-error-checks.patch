@@ -1,0 +1,98 @@
+--- a/src/vendor-sm6225/drivers/power/supply/nopmi/sc8551_charger.c
++++ b/src/vendor-sm6225/drivers/power/supply/nopmi/sc8551_charger.c
+@@ -25,7 +25,6 @@
+ #include <linux/debugfs.h>
+ #include <linux/bitops.h>
+ #include <linux/math64.h>
+-#include <asm/neon.h>
+ #include "sc8551_reg.h"
+@@ -42,16 +41,18 @@
+ 	ADC_MAX_NUM,
+ }ADC_CH;
+ 
+-static float sc8551_adc_lsb[] = {
+-	[ADC_IBUS]	= SC8551_IBUS_ADC_LSB,
+-	[ADC_VBUS]	= SC8551_VBUS_ADC_LSB,
+-	[ADC_VAC]	= SC8551_VAC_ADC_LSB,
+-	[ADC_VOUT]	= SC8551_VOUT_ADC_LSB,
+-	[ADC_VBAT]	= SC8551_VBAT_ADC_LSB,
+-	[ADC_IBAT]	= SC8551_IBAT_ADC_LSB,
+-	[ADC_TBUS]	= SC8551_TSBUS_ADC_LSB,
+-	[ADC_TBAT]	= SC8551_TSBAT_ADC_LSB,
+-	[ADC_TDIE]	= SC8551_TDIE_ADC_LSB,
++/* ADC LSB in 1/100000 units; preserves vendor result units without FP/NEON. */
++#define SC8551_ADC_SCALE 100000U
++static const u32 sc8551_adc_lsb[ADC_MAX_NUM] = {
++	[ADC_IBUS] = 156250,
++	[ADC_VBUS] = 375000,
++	[ADC_VAC] = 500000,
++	[ADC_VOUT] = 125000,
++	[ADC_VBAT] = 125750,
++	[ADC_IBAT] = 312500,
++	[ADC_TBUS] = 9766,
++	[ADC_TBAT] = 9766,
++	[ADC_TDIE] = 50000,
+ };
+@@ -961,45 +962,39 @@
+ static int sc8551_set_adc_scanrate(struct sc8551 *sc, bool oneshot)
+ {
+-	int ret;
+-	u8 val;
+-
+-	if (oneshot)
+-		val = SC8551_ADC_RATE_ONESHOT;
+-	else
+-		val = SC8551_ADC_RATE_CONTINOUS;
++	u8 val = oneshot ? SC8551_ADC_RATE_ONESHOT :
++				 SC8551_ADC_RATE_CONTINOUS;
+ 
+ 	val <<= SC8551_ADC_RATE_SHIFT;
+-
+-	ret = sc8551_update_bits(sc, SC8551_REG_14,
+-				SC8551_ADC_EN_MASK, val);
+-	return ret;
++	return sc8551_update_bits(sc, SC8551_REG_14,
++				  SC8551_ADC_RATE_MASK, val);
+ }
+ EXPORT_SYMBOL_GPL(sc8551_set_adc_scanrate);
+@@ -982,30 +977,29 @@
+-static int sc8551_get_adc_data(struct sc8551 *sc, int channel,  int *result)
++static int sc8551_get_adc_data(struct sc8551 *sc, int channel, int *result)
+ {
+ 	int ret;
+ 	u8 val_l, val_h;
+ 	u16 val;
+ 
+-	if(channel < 0 || channel >= ADC_MAX_NUM) return 0;
++	if (!result || channel < 0 || channel >= ADC_MAX_NUM)
++		return -EINVAL;
+ 
+ 	ret = sc8551_read_byte(sc, ADC_REG_BASE + (channel << 1), &val_h);
+-	ret = sc8551_read_byte(sc, ADC_REG_BASE + (channel << 1) + 1, &val_l);
++	if (ret)
++		return ret;
+ 
+-	if (ret < 0)
++	ret = sc8551_read_byte(sc, ADC_REG_BASE + (channel << 1) + 1,
++			       &val_l);
++	if (ret)
+ 		return ret;
+-	val = (val_h << 8) | val_l;
+-	*result = val;
+ 
+-	if (sc->chip_vendor == SC8551) {
+-		kernel_neon_begin();
+-		*result = (int)(val * sc8551_adc_lsb[channel]);
+-		kernel_neon_end();
+-	}
++	val = ((u16)val_h << 8) | val_l;
++	*result = div_u64((u64)val * sc8551_adc_lsb[channel],
++			  SC8551_ADC_SCALE);
++
+ 	return 0;
+ }
+ EXPORT_SYMBOL_GPL(sc8551_get_adc_data);
+@@ -1012,7 +1007,7 @@
+-	if (channel > ADC_MAX_NUM)
++	if (channel < 0 || channel >= ADC_MAX_NUM)
+ 		return -EINVAL;
