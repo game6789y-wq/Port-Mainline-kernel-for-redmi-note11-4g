@@ -124,3 +124,11 @@ Stage 112 DRM/ESD lifecycle audit:
 - Worker holds ctx->lock for enabled/prepared/stopping check, temporary MIPI_DSI_MODE_LPM flag, DCS 0x0A read and flag restore. Existing K7 mode flags are VIDEO|VIDEO_BURST without LPM. Require direct `mipi_dsi_dcs_read(..., 1)` return exactly 1 and status 0x9D; generic get_power_mode helper does not enforce exact positive byte count.
 - Re-arm while holding ctx->lock only if still active; remove must stop/cancel before power-down and DSI detach. Panel lock -> host cmd_mutex is the intended transfer lock order.
 - Observation-only; no automatic recovery. Stage 112 design audit only; no source/DTS edits, rebuild or hardware test; MDSS/DSI0/PHY remain disabled.
+
+Stage 113 DSI/DPU and K7 failure/re-enable audit:
+- K7 ON/PPS failure is recorded in last_error and powers panel down; void bridge callbacks cannot veto the atomic commit. Refresh-batch failure attempts OFF then powers down. Backlight update failure is logged after enable and does not currently roll back panel enable.
+- MSM DSI error IRQ snapshots PLL, FIFO, ACK, timeout, interleave and lane0 PHY errors. Worker software-resets only for MDP FIFO underflow; other conditions are logged and IRQ is re-enabled. This is host-controller recovery, not panel re-init or ESD recovery.
+- DPU video flush wait returns -ETIMEDOUT after 50ms; KMS logs and breaks wait loop. Timeout alone is not proof of panel ESD.
+- Classification: DCS mismatch vs read/transport failure vs DSI host error vs MDP FIFO underflow vs DPU flush timeout vs K7 init command failure. No generic reset response.
+- Future controlled retry only after DRM disable/OFF, normal host/PHY pre-enable, K7 ON/PPS, 90Hz selection and verified first frame. Remain dark on any failure; no blind retry loop.
+- Stage 113 is static audit only; no source/DTS change, rebuild or hardware test. MDSS/DSI0/PHY disabled; FPC disabled.
