@@ -82,6 +82,7 @@ The priority is to establish correct hardware support and a reproducible kernel 
 - [x] SM6375 DSI PHY / PLL, DSI clock path, regulator and power-domain dependencies audited.
 - [x] DSI DSC-adjusted clock estimate corrected; 90Hz remains an unvalidated analytical target.
 - [x] K7 DSC 1.1 PPS parameters, one-slice-per-packet transport and SM6225 one-encoder/two-slice DPU path audited in source.
+- [x] SM6225 DPU DSC → PingPong → INTF → DSI kickoff and CTL flush sequence audited in source.
 
 ### Latest build artifacts and validation
 
@@ -95,7 +96,7 @@ The priority is to establish correct hardware support and a reproducible kernel 
 
 **Validation caveat:** binding documentation validation passed with `dt-doc-validate`. Full `dtbs_check` remains blocked by an internal error in the installed dtschema 2024.4 (`AttributeError: 'bool' object has no attribute 'pop'`), so full schema validation is not claimed. `git diff --check` passed.
 
-The latest build manifest and engineering audit are maintained in the development workspace. Static audits confirm the software path configures a 128-byte DSC PPS (type 0x0A, LP mode) after panel initialization, with 540-byte slice chunks and two packets per line. The SM6225 DPU catalog has one DSC block; its software path assigns both slices to that encoder. These are source-level findings only, not proof of hardware operation. No Recovery ZIP, installable package or tested release is available.
+The latest build manifest and engineering audit are maintained in the development workspace. Static audits confirm the software path configures a 128-byte DSC PPS (type 0x0A, LP mode) after panel initialization, with 540-byte slice chunks and two packets per line. The SM6225 DPU catalog has one DSC block; its software path assigns both slices to that encoder. Source-level follow-up (Stage 108) confirms one DSC_0 / PINGPONG_0 / LM_0 / INTF_1 route to DSI0; DPU configures DSC and PingPong, flushes DSC_0 and INTF_1 through CTL, then starts the encoder. These are source-level findings only, not proof of hardware operation. No Recovery ZIP, installable package or tested release is available.
 
 ### Still pending
 
