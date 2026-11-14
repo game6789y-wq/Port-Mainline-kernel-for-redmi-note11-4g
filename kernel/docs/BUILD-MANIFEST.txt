@@ -242,3 +242,8 @@ Stage 136 — K7 panel module staging correction (2026-11-14)
 - Rebuilt Image/modules from unpatched source, ran modules_install and depmod; K7 module now staged with OF aliases and dependency metadata. `modprobe --show-depends` resolves K7 dependencies.
 - Staging contains 1,681 modules and zero FPC modules. Build hashes and module SHA are in STAGE136-K7-MODULE-STAGING-FIX.md.
 - Display DT nodes remain disabled; no hardware test or flash.
+
+Stage 137 — MSM display module autoload audit (2026-11-14)
+- Verified staged `msm.ko` OF aliases for qcom,mdss-dsi-ctrl fallback, qcom,sm6375-dsi-phy-7nm, qcom,sm6225-mdss and qcom,sm6225-dpu.
+- Confirmed K7 and REFGEN provider aliases/dependency chains in staged module metadata.
+- Metadata inspection only; no device boot/display test.
