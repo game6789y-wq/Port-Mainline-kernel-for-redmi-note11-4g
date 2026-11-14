@@ -1,0 +1,147 @@
+Subject: [PATCH] drm/msm/dsi: handle runtime PM acquisition failures
+
+Use pm_runtime_resume_and_get() so failed resumes do not leave usage
+counter references behind. Check transfer clock setup before touching
+DSI registers, and unwind host power-on resources in reverse order.
+
+The patch is a draft against the SPES port working tree after applying
+spes-mainline-port.patch. It has not been applied to the kernel source.
+
+---
+
+--- a/drivers/gpu/drm/msm/dsi/dsi_host.c
++++ b/drivers/gpu/drm/msm/dsi/dsi_host.c
+@@ -210,12 +210,18 @@
+ 
+ 	ahb_clk = msm_clk_get(msm_host->pdev, "iface");
+ 	if (IS_ERR(ahb_clk)) {
+-		dev_err_probe(dev, PTR_ERR(ahb_clk), "%s: cannot get interface clock\n",
++		ret = PTR_ERR(ahb_clk);
++		dev_err_probe(dev, ret, "%s: cannot get interface clock\n",
+ 			      __func__);
+-		goto exit;
++		return ERR_PTR(ret);
+ 	}
+ 
+-	pm_runtime_get_sync(dev);
++	ret = pm_runtime_resume_and_get(dev);
++	if (ret < 0) {
++		dev_err_probe(dev, ret, "%s: failed to resume for version read\n",
++			      __func__);
++		return ERR_PTR(ret);
++	}
+ 
+ 	ret = clk_prepare_enable(ahb_clk);
+ 	if (ret) {
+@@ -230,6 +236,12 @@
+ 	}
+ 
+ 	cfg_hnd = msm_dsi_cfg_get(major, minor);
++	if (!cfg_hnd) {
++		ret = -EINVAL;
++		dev_err_probe(dev, ret, "%s: unsupported DSI version %x:%x\n",
++			      __func__, major, minor);
++		goto disable_clks;
++	}
+ 
+ 	DBG("%s: Version %x:%x\n", __func__, major, minor);
+ 
+@@ -237,7 +249,8 @@
+ 	clk_disable_unprepare(ahb_clk);
+ runtime_put:
+ 	pm_runtime_put_sync(dev);
+-exit:
++	if (ret)
++		return ERR_PTR(ret);
+ 	return cfg_hnd;
+ }
+ 
+@@ -2101,8 +2114,8 @@
+ 	pm_runtime_enable(&pdev->dev);
+ 
+ 	msm_host->cfg_hnd = dsi_get_config(msm_host);
+-	if (!msm_host->cfg_hnd)
+-		return dev_err_probe(&pdev->dev, -EINVAL,
++	if (IS_ERR(msm_host->cfg_hnd))
++		return dev_err_probe(&pdev->dev, PTR_ERR(msm_host->cfg_hnd),
+ 				     "%s: get config failed\n", __func__);
+ 	cfg = msm_host->cfg_hnd->cfg;
+ 
+@@ -2250,9 +2263,19 @@
+ 	 * mdss interrupt is generated in mdp core clock domain
+ 	 * mdp clock need to be enabled to receive dsi interrupt
+ 	 */
+-	pm_runtime_get_sync(&msm_host->pdev->dev);
+-	cfg_hnd->ops->link_clk_set_rate(msm_host);
+-	cfg_hnd->ops->link_clk_enable(msm_host);
++	int ret;
++
++	ret = pm_runtime_resume_and_get(&msm_host->pdev->dev);
++	if (ret < 0)
++		return ret;
++
++	ret = cfg_hnd->ops->link_clk_set_rate(msm_host);
++	if (ret)
++		goto runtime_put;
++
++	ret = cfg_hnd->ops->link_clk_enable(msm_host);
++	if (ret)
++		goto runtime_put;
+ 
+ 	/* TODO: vote for bus bandwidth */
+ 
+@@ -2267,6 +2290,10 @@
+ 	dsi_intr_ctrl(msm_host, DSI_IRQ_MASK_CMD_DMA_DONE, 1);
+ 
+ 	return 0;
++
++runtime_put:
++	pm_runtime_put(&msm_host->pdev->dev);
++	return ret;
+ }
+ 
+ void msm_dsi_host_xfer_restore(struct mipi_dsi_host *host,
+@@ -2589,17 +2616,25 @@
+ 	if (ret) {
+ 		pr_err("%s:Failed to enable vregs.ret=%d\n",
+ 			__func__, ret);
+-		goto unlock_ret;
++		goto fail_disable_sfpb;
+ 	}
+ 
+-	pm_runtime_get_sync(&msm_host->pdev->dev);
++	ret = pm_runtime_resume_and_get(&msm_host->pdev->dev);
++	if (ret < 0) {
++		pr_err("%s: failed to resume DSI bus clocks. ret=%d\n",
++		       __func__, ret);
++		goto fail_disable_reg;
++	}
++
+ 	ret = cfg_hnd->ops->link_clk_set_rate(msm_host);
+-	if (!ret)
+-		ret = cfg_hnd->ops->link_clk_enable(msm_host);
++	if (ret)
++		goto fail_pm;
++
++	ret = cfg_hnd->ops->link_clk_enable(msm_host);
+ 	if (ret) {
+ 		pr_err("%s: failed to enable link clocks. ret=%d\n",
+ 		       __func__, ret);
+-		goto fail_disable_reg;
++		goto fail_pm;
+ 	}
+ 
+ 	ret = pinctrl_pm_select_default_state(&msm_host->pdev->dev);
+@@ -2620,10 +2655,13 @@
+ fail_disable_clk:
+ 	cfg_hnd->ops->link_clk_disable(msm_host);
++	fail_pm:
+ 	pm_runtime_put(&msm_host->pdev->dev);
+ fail_disable_reg:
+ 	regulator_bulk_disable(msm_host->cfg_hnd->cfg->num_regulators,
+ 			       msm_host->supplies);
++	fail_disable_sfpb:
++	msm_dsi_sfpb_config(msm_host, false);
+ unlock_ret:
+ 	mutex_unlock(&msm_host->dev_mutex);
+ 	return ret;
