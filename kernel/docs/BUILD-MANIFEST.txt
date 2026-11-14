@@ -291,3 +291,10 @@ Stage 143 — targeted SPES DT validator (2026-11-14)
 Patch inventory update
 - `kernel/patches/drafts/0001-msm-dsi-host-runtime-pm-unwind.patch`: DSI Host PM error-path draft, W=1 object and full Image/modules integration builds passed; remains unapplied and requires developer sign-off for upstream submission.
 - `kernel/patches/drafts/0002-dt-vendor-prefix-and-example-cleanup.patch`: schema-only FPC vendor-prefix and K7 example cleanup; apply after the main SPES port patch when reproducing the targeted DT validation.
+
+Stage 145 — SC8551 full charger driver port audit (2026-11-14)
+- Audited the 2,323-line vendor SC8551 driver and 722-line register header against the Mainline SM6225 tree.
+- Confirmed SPES SC8551 is a separate I2C device at 0x65 with GPIO84 IRQ; MAX77729 remains at 0x66. Sibling SPES-SM5602/SPESN SC8551 address 0x66 is not applicable to leading SPES.
+- Recorded mainline port blockers: private vendor power-supply properties, legacy ARM64 NEON/floating-point ADC scaling, ignored initialization errors, ADC read bugs, devm power-supply lifetime, legacy I2C probe API, IRQ/PM lifecycle and shutdown policy.
+- Added `STAGE145-SC8551-MAINLINE-PORT-AUDIT.md` and uploaded it with the package index update.
+- Static audit only: full driver port not started, SC8551 DT node remains absent/disabled, no build restarted (user had asked to stop), no hardware test, flash or release.
