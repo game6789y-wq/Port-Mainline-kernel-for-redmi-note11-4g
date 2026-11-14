@@ -34,7 +34,8 @@ Target: Xiaomi Redmi Note 11 4G (SPES, Qualcomm SM6225)
 - `STAGE141-SPES-CUSTOM-MODULE-AUTOLOAD-AUDIT.md` — verifies staged MAX77729, FT3418, SC8551, K7 and REFGEN module aliases and dependency dry-runs.
 - `STAGE142-DT-SCHEMA-VALIDATION-RECOVERY.md` — records dtschema 2024.11 recovery, six passing targeted bindings and six passing custom-node DT validations.
 - `STAGE143-TARGETED-DT-VALIDATOR.md` — documents the repeatable targeted SPES binding/DTB validator and disabled-node safety gates.
-- `STAGE145-SC8551-MAINLINE-PORT-AUDIT.md` — audits the vendor SC8551 full charger driver port, mainline API gaps, safety/error-handling blockers and staged port plan.
+- `STAGE145-SC8551-MAINLINE-PORT-AUDIT.md` — initial vendor SC8551 full charger driver port audit.
+- `STAGE146-SC8551-DRIVER-PORT-DEEP-REVIEW.md` — deep review of ADC, protection initialization, DT boolean semantics, Power Supply ABI, IRQ/PM and probe/teardown defects found in the vendor SC8551 driver.
 - `kernel/scripts/build-spes.sh` — reproducible Image/modules/target-DTB build and module staging helper.
 - `kernel/config/spes-android.config` — config fragment for SPES platform and custom drivers, with FPC explicitly disabled.
 - `kernel/scripts/README.md` — build helper and targeted DT validation usage.
