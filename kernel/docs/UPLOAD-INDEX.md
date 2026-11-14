@@ -20,6 +20,7 @@ Target: Xiaomi Redmi Note 11 4G (SPES, Qualcomm SM6225)
 - `STAGE127-DSI-HOST-PATCH-COMPILE-CHECK.md` — isolated DSI Host object compile result and source restoration verification.
 - `STAGE128-KHAJE-REFGEN-COMPATIBILITY-AUDIT.md` — compares vendor Khaje REFGEN implementation with the Mainline regulator driver and verifies the module is staged.
 - `STAGE129-REFGEN-MODULE-AUTOLOAD-AUDIT.md` — verifies REFGEN module vermagic, OF aliases and staged depmod metadata.
+- `STAGE130-KHAJE-DSI-HW-VERSION-MAPPING.md` — maps vendor DSI controller v2.4 declaration to Mainline v2.4.0/2.4.1 handlers.
 - `../patches/drafts/0001-msm-dsi-host-runtime-pm-unwind.patch` — draft code patch; requires developer sign-off and has not been applied.
 
 ## Apply the source patch
@@ -112,3 +113,7 @@ The 54.7 MB kernel Image and other build outputs remain in the build workspace. 
 ### Stage 129 update
 - Added `STAGE129-REFGEN-MODULE-AUTOLOAD-AUDIT.md`: REFGEN module vermagic matches the kernel release; `modules.alias` maps the SPES compatible to the module and `modules.dep` contains it.
 - Final rootfs inclusion/autoload has not been tested.
+
+### Stage 130 update
+- Added `STAGE130-KHAJE-DSI-HW-VERSION-MAPPING.md`: vendor Khaje DTS declares DSI controller v2.4; Mainline v2.4.0 and v2.4.1 map to the same sdm845 host configuration and ops.
+- Exact silicon HW version register value remains unmeasured; runtime detection remains authoritative.
