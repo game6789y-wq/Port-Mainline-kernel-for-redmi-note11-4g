@@ -31,6 +31,7 @@ Target: Xiaomi Redmi Note 11 4G (SPES, Qualcomm SM6225)
 - `STAGE138-PMIC-DISPLAY-POWER-PROVIDER-AUDIT.md` — confirms RPM/SMD and SPMI PMIC regulator/GPIO providers are built in.
 - `STAGE139-SOURCE-MATCHED-BUILD-DTB-STATUS.md` — records current source-matched build hashes, complete module staging and disabled MDSS/DSI/PHY/FPC DT states.
 - `STAGE140-REPRODUCIBLE-BUILD-STAGING-SCRIPT.md` — documents the automated Image/modules/target-DTB build, module install/depmod and required SPES config options.
+- `STAGE141-SPES-CUSTOM-MODULE-AUTOLOAD-AUDIT.md` — verifies staged MAX77729, FT3418, SC8551, K7 and REFGEN module aliases and dependency dry-runs.
 - `kernel/scripts/build-spes.sh` — reproducible Image/modules/target-DTB build and module staging helper.
 - `kernel/config/spes-android.config` — config fragment for SPES platform and custom drivers, with FPC explicitly disabled.
 - `kernel/scripts/README.md` — workspace layout, invocation and safety notes for the build helper.
@@ -172,3 +173,7 @@ The 54.7 MB kernel Image and other build outputs remain in the build workspace. 
 
 ### Build helper assets
 - Added `kernel/scripts/build-spes.sh`, `kernel/config/spes-android.config` and `kernel/scripts/README.md` to the package; the helper was executed successfully in the Boxadd workspace and refreshed the 1,681-module staging tree.
+
+### Stage 141 update
+- Verified staged MAX77729, FT3418, SC8551, K7 and REFGEN module OF/I2C aliases; `modprobe --show-depends` resolves all five module names.
+- No device runtime or hardware behavior is claimed.
