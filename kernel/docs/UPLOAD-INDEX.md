@@ -52,3 +52,9 @@ The 54.7 MB kernel Image and other build outputs remain in the build workspace. 
 - Reconciled vendor DBV inversion with the actual legacy little-endian helper and Mainline large-brightness big-endian helper. Both produce the same DCS 0x51 payload (`0x07ff` -> `07 ff`).
 - Supersedes Stage 114's preliminary mismatch warning. No source change required; visual brightness remains unverified on hardware.
 - Static audit only; no rebuild or hardware test.
+
+
+### Stage 116 — Vendor HBM and brightness policy
+- Audited K7 vendor HBM LP command sequences and the required brightness restore after HBM-off. Mainline has no HBM implementation; keep it unsupported rather than adding unvalidated stateful commands.
+- Recorded vendor 1..2047 metadata vs Mainline 0..2047 blanking behavior and noted project-specific scaling caveat.
+- Static audit only; no source/DTS changes, rebuild or hardware test.

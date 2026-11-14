@@ -141,3 +141,8 @@ Stage 114 backlight/DSI/DPU frame-completion audit:
 - Stage 114 is static audit only; no source/DTS change, rebuild or hardware test. MDSS/DSI0/PHY disabled; FPC disabled.
 
 Stage 115: verified vendor/Mainline DCS brightness serialization equivalence. Stage 114 preliminary mismatch warning is superseded; no source patch required. Static audit only; no rebuild or hardware validation.
+
+Stage 116 Vendor HBM/backlight policy audit:
+- Vendor K7 HBM uses separate LP commands (on: 0x53 F0 + DCS 0x51 07 ff; off: 0x53 30). Vendor explicitly restores the saved brightness after HBM-off because the panel command sets an arbitrary brightness. Mainline K7 has no HBM state machine; keep HBM unsupported until state/restore/serialization and hardware validation exist.
+- Vendor DT backlight range is 1..2047; Mainline exposes 0..2047 to support blanking. Visible low-level minimum requires hardware validation. Project-specific vendor brightness scaling must not be copied without confirming SPES build configuration.
+- Stage 116 audit only; no source/DTS changes, rebuild or hardware test.
