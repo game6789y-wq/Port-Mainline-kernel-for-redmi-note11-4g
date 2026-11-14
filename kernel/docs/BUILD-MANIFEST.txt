@@ -251,3 +251,9 @@ Stage 137 — MSM display module autoload audit (2026-11-14)
 Stage 138 — PMIC display power-provider audit (2026-11-14)
 - Confirmed RPM/GLINK/SMD RPM and PM6125 RPM regulator providers are built in; SPMI arbiter, PMIC MFD, PMIC GPIO and SPMI regulator drivers are built in.
 - REFGEN remains a separately staged module; no new source/build change or hardware power measurement.
+
+Stage 139 — source-matched build and DTB status (2026-11-14)
+- Recorded source-matched Image/DTB/MSM/K7/REFGEN hashes in STAGE139-SOURCE-MATCHED-BUILD-DTB-STATUS.md.
+- Image/modules build, modules_install and depmod all completed successfully from unpatched source; staging contains 1,681 modules and zero FPC modules.
+- Fresh DTB confirms MDSS, DSI0, DSI PHY and FPC status disabled.
+- No hardware boot, display test, flash or installable release.
