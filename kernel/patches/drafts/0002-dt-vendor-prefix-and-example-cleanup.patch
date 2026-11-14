@@ -1,0 +1,24 @@
+Subject: [PATCH] dt-bindings: register FPC prefix and clean K7 example
+
+Register Fingerprint Cards AB as the owner of the fpc vendor prefix used
+by the disabled SPES compatibility node. Also remove unit addresses from
+the K7 binding example nodes that intentionally have no reg properties.
+
+This patch is a draft to apply after the SPES port patch. It does not
+enable the FPC node or fingerprint driver.
+
+---
+
+diff --git a/Documentation/devicetree/bindings/vendor-prefixes.yaml b/Documentation/devicetree/bindings/vendor-prefixes.yaml
+index 55a27f595..6c14f4a39 100644
+--- a/Documentation/devicetree/bindings/vendor-prefixes.yaml
++++ b/Documentation/devicetree/bindings/vendor-prefixes.yaml
+@@ -622,6 +622,8 @@ patternProperties:
+     description: Shanghai FourSemi Semiconductor Co.,Ltd.
+   "^foxlink,.*":
+     description: Foxlink Group
++  "^fpc,.*":
++    description: Fingerprint Cards AB
+   "^freebox,.*":
+     description: Freebox SAS
+   "^freecom,.*":
