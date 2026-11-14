@@ -33,9 +33,11 @@ Target: Xiaomi Redmi Note 11 4G (SPES, Qualcomm SM6225)
 - `STAGE140-REPRODUCIBLE-BUILD-STAGING-SCRIPT.md` — documents the automated Image/modules/target-DTB build, module install/depmod and required SPES config options.
 - `STAGE141-SPES-CUSTOM-MODULE-AUTOLOAD-AUDIT.md` — verifies staged MAX77729, FT3418, SC8551, K7 and REFGEN module aliases and dependency dry-runs.
 - `STAGE142-DT-SCHEMA-VALIDATION-RECOVERY.md` — records dtschema 2024.11 recovery, six passing targeted bindings and six passing custom-node DT validations.
+- `STAGE143-TARGETED-DT-VALIDATOR.md` — documents the repeatable targeted SPES binding/DTB validator and disabled-node safety gates.
 - `kernel/scripts/build-spes.sh` — reproducible Image/modules/target-DTB build and module staging helper.
 - `kernel/config/spes-android.config` — config fragment for SPES platform and custom drivers, with FPC explicitly disabled.
-- `kernel/scripts/README.md` — workspace layout, invocation and safety notes for the build helper.
+- `kernel/scripts/README.md` — build helper and targeted DT validation usage.
+- `kernel/scripts/validate-spes-dt.sh` — checks six project bindings and the SPES DTB without building all ARM64 DTBs.
 - `../patches/drafts/0001-msm-dsi-host-runtime-pm-unwind.patch` — draft code patch; requires developer sign-off and has not been applied.
 
 ## Apply the source patch
