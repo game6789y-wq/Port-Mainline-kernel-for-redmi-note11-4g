@@ -41,3 +41,8 @@ The 54.7 MB kernel Image and other build outputs remain in the build workspace. 
 ### Stage 113 — DSI/DPU failure classification
 - Audited K7 ON/PPS/refresh/backlight failures, MSM DSI error worker behavior and DPU flush timeout handling.
 - Documented why host FIFO reset, PLL/PHY errors and DPU timeouts must not be treated as panel ESD or trigger a blind panel reset. Defined a controlled DRM disable/re-enable sequence for future hardware validation; no recovery code implemented.
+
+### Stage 114 — Backlight and frame-completion audit
+- Confirmed vendor K7 panel requires inverted DBV byte order; identified mismatch with mainline standard big-endian brightness helper. Documented concrete `0x07ff` byte sequence difference and recommended explicit swapped DCS `0x51` payload for a later patch.
+- Audited LP-mode backlight writes, `ctx->lock`/host `cmd_mutex` serialization, host power gate, DPU vblank/CTL flush/frame-done path and disable VSYNC wait. Kept brightness errors distinct from DSI link and DPU frame errors.
+- Audit only: no source/DTS edits, rebuild or hardware test.
