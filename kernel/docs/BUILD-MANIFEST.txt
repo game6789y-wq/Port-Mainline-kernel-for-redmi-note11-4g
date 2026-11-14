@@ -278,3 +278,7 @@ Stage 142 — DT schema validation recovery (2026-11-14)
 - Six project-specific dt_binding_check targets and six custom-node dt-validate limits pass on the SPES DTB.
 - Added FPC vendor prefix and cleaned K7 example node names; FPC remains disabled.
 - Full unfiltered dt-validate still reports unrelated UFS/CoreSight schema mismatches; full dtbs_check all-DTB build timed out because DTB_FILES was ignored. Full-tree check is not claimed.
+
+Stage 142 validation refinement
+- Target-specific SPES DTB check using CHECK_DTBS=1 + DT_SCHEMA_FILES (six project schemas) completed exit 0 for qcom/sm6225-xiaomi-spes.dtb.
+- Aggregate all-ARM64 dtbs_check remains unrun; full unfiltered dt-validate still reports unrelated UFS/CoreSight schema mismatches.
