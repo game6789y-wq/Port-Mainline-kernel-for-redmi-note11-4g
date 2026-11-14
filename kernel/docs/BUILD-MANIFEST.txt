@@ -298,3 +298,10 @@ Stage 145 — SC8551 full charger driver port audit (2026-11-14)
 - Recorded mainline port blockers: private vendor power-supply properties, legacy ARM64 NEON/floating-point ADC scaling, ignored initialization errors, ADC read bugs, devm power-supply lifetime, legacy I2C probe API, IRQ/PM lifecycle and shutdown policy.
 - Added `STAGE145-SC8551-MAINLINE-PORT-AUDIT.md` and uploaded it with the package index update.
 - Static audit only: full driver port not started, SC8551 DT node remains absent/disabled, no build restarted (user had asked to stop), no hardware test, flash or release.
+
+Stage 146 — SC8551 vendor driver deep review (2026-11-14)
+- Confirmed ADC high-byte I2C error is overwritten by the low-byte read; invalid ADC channels can report success; ADC scan-rate code uses the ADC enable mask instead of the rate mask.
+- Confirmed protection initialization and several ADC/regulation setup paths log or ignore register-write failures and still return success.
+- Identified a critical DT semantic mismatch: SPES DTS encodes thermal-disable values as `<0>`, while the vendor driver uses `of_property_read_bool()`, which treats property presence as true regardless of cell value. Port must define explicit, consistent semantics before enabling the node.
+- Confirmed fixed-point ADC conversion, standard Power Supply ABI mapping, managed resource cleanup, IRQ/PM and shutdown redesign are required. Do not copy the vendor writable register sysfs node.
+- Added `STAGE146-SC8551-DRIVER-PORT-DEEP-REVIEW.md` and indexed it. Static source review only: no Mainline source/DTS changes, no build (the user's stop-build instruction remains active), no hardware writes, flash or release.
