@@ -152,3 +152,8 @@ Stage 117 — static audit only (2026-11-14)
 - Confirmed normal brightness wire byte order is equivalent; no source change required.
 - HBM remains unsupported in Mainline; vendor HBM-off requires restoring the saved normal brightness.
 - No rebuild or hardware test performed. MDSS/DSI0/DSI PHY remain disabled; FPC remains disabled.
+
+Stage 118 — static shutdown/unbind lifecycle audit (2026-11-14)
+- Confirmed the MIPI-DSI driver API supports a shutdown callback; K7 currently has no callback and its remove path powers down GPIO/reset without sending DCS OFF.
+- A candidate shutdown hook is documented but deliberately not implemented pending verification of DSI host runtime-PM state during system shutdown.
+- No source change, rebuild, or hardware test. MDSS/DSI0/DSI PHY remain disabled; FPC remains disabled.

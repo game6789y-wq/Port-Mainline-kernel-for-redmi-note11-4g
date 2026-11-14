@@ -399,3 +399,13 @@ Static source audit against the exact K7 38-0C-0A vendor DTS/panel implementatio
 - Normal brightness byte order is equivalent to Vendor; no patch required.
 - DRM enable/disable command ordering is coherent at source level. Hardware DSI success, visible first frame, and brightness response remain unverified.
 - MDSS/DSI0/DSI PHY remain disabled; FPC remains disabled.
+
+## Stage 118 — K7 shutdown and unbind lifecycle audit
+
+- The MIPI-DSI driver API in this kernel explicitly supports a `.shutdown` callback. `mipi_dsi_driver_register_full()` installs the wrapper when the panel driver provides it. The K7 driver currently registers only `.probe` and `.remove`; it has no shutdown callback.
+- The device core's `device_shutdown()` walks the device list backwards. MIPI-DSI devices are children of the DSI host device, so the panel child is expected to receive its shutdown callback before the host parent. The MIPI-DSI bus itself has no `.shutdown` callback, so the per-driver callback is the relevant hook.
+- Existing Mainline DSI panel drivers use `.shutdown` to disable/unprepare panels before poweroff (for example panel-newvision-nv3051d and panel-simple). This is evidence that an explicit K7 shutdown hook is a normal kernel lifecycle mechanism.
+- K7 `.remove` currently asserts reset low, disables panel-enable GPIO, selects sleep pinctrl, then detaches DSI. It does not send the DCS OFF table. Normal DRM atomic disable does send OFF before GPIO power-off, but remove/unbind and system shutdown are distinct paths.
+- Candidate follow-up: add a K7 shutdown callback that takes `ctx->lock`, sends the OFF table only when panel state indicates it is prepared and the DSI host is usable, logs errors, then powers down GPIO/reset/pinctrl. Before changing source, verify DSI host runtime-PM state and shutdown ordering in the exact MSM host implementation; `device_shutdown()`'s `pm_runtime_get_noresume()` prevents further runtime suspend but does not itself resume an already suspended device. Do not assume a transfer is safe merely because the callback runs before the parent.
+- Do not blindly add the callback yet: a shutdown-time DSI command against an already suspended host could be unsafe. This remains a candidate lifecycle hardening item pending host PM proof. The existing GPIO power-off fallback remains safe at the board-control level but may skip panel sleep commands.
+- Stage 118 is static source audit only. No source/DT changes, no rebuild, no hardware test. MDSS/DSI0/DSI PHY remain disabled; FPC remains disabled.
