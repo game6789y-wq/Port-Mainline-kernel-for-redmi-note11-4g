@@ -117,3 +117,10 @@ Stage 111 K7 ESD read/lifecycle audit:
 - Host command transfer uses cmd_mutex, but power-off uses dev_mutex and does not take cmd_mutex; power_on check precedes cmd_mutex. Asynchronous monitor must be synchronously cancelled/drained by DRM lifecycle before host shutdown.
 - Never call cancel_delayed_work_sync while holding K7 ctx->lock; cancel outside lock, then lock and OFF/power-down. Add a stopping state to prevent worker re-arm. Observation-only first; no blind reset/recovery.
 - Stage 111 is source-level design audit only. No source/DTS changes, no rebuild, no hardware validation; MDSS/DSI0/PHY remain disabled.
+
+Stage 112 DRM/ESD lifecycle audit:
+- Bridge chain order is DSI manager -> K7. K7 `pre_enable_prev_first` makes host pre-enable precede panel pre-enable and makes K7 post-disable precede host shutdown. DRM bridge atomic_disable runs before encoder disable; atomic_post_disable runs after encoder disable.
+- Proposed ESD delayed work: initialize at probe; arm only after successful panel ON/PPS/refresh enable. In K7 atomic_disable set stopping under ctx->lock, unlock, cancel_delayed_work_sync, then relock and send OFF. Never cancel synchronously while holding ctx->lock.
+- Worker holds ctx->lock for enabled/prepared/stopping check, temporary MIPI_DSI_MODE_LPM flag, DCS 0x0A read and flag restore. Existing K7 mode flags are VIDEO|VIDEO_BURST without LPM. Require direct `mipi_dsi_dcs_read(..., 1)` return exactly 1 and status 0x9D; generic get_power_mode helper does not enforce exact positive byte count.
+- Re-arm while holding ctx->lock only if still active; remove must stop/cancel before power-down and DSI detach. Panel lock -> host cmd_mutex is the intended transfer lock order.
+- Observation-only; no automatic recovery. Stage 112 design audit only; no source/DTS edits, rebuild or hardware test; MDSS/DSI0/PHY remain disabled.

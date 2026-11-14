@@ -33,3 +33,7 @@ git apply spes-mainline-port.patch
 ## Binary artifacts
 
 The 54.7 MB kernel Image and other build outputs remain in the build workspace. They are not included here because this is an engineering/source snapshot, not a hardware-validated release. Use the manifest hashes to identify the local build outputs.
+
+### Stage 112 — DRM / ESD worker lifecycle
+- Audited DSI-manager/K7 bridge ordering and established K7 `atomic_disable` as the safe synchronous cancel boundary before OFF; K7 `atomic_post_disable` precedes host shutdown.
+- Documented delayed-work start/stop protocol, mutex/cancel ordering, LP-mode DCS read requirements and exact one-byte validation. No worker implementation or source changes in this stage.
