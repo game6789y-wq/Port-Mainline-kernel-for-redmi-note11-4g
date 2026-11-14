@@ -38,22 +38,35 @@ Target: Xiaomi Redmi Note 11 4G (SPES, Qualcomm SM6225)
 - `kernel/config/spes-android.config` — config fragment for SPES platform and custom drivers, with FPC explicitly disabled.
 - `kernel/scripts/README.md` — build helper and targeted DT validation usage.
 - `kernel/scripts/validate-spes-dt.sh` — checks six project bindings and the SPES DTB without building all ARM64 DTBs.
-- `../patches/drafts/0001-msm-dsi-host-runtime-pm-unwind.patch` — draft code patch; requires developer sign-off and has not been applied.
+- `../patches/drafts/0001-msm-dsi-host-runtime-pm-unwind.patch` — draft DSI Host PM fix; W=1 object and full Image/modules builds pass, but it remains unapplied and requires developer sign-off for upstream submission.
+- `../patches/drafts/0002-dt-vendor-prefix-and-example-cleanup.patch` — schema-only FPC vendor-prefix and K7 example cleanup; apply after the main port patch when reproducing targeted DT validation.
 
 ## Apply the source patch
 
+From the kernel source checkout:
+
 ```sh
 git checkout c545b9e890d723b5dd0beb6a7a067a0e16088e65
-git apply --check spes-mainline-port.patch
-git apply spes-mainline-port.patch
+git apply --check /path/to/kernel/patches/spes-mainline-port.patch
+git apply /path/to/kernel/patches/spes-mainline-port.patch
 ```
+
+Optional schema cleanup for the SPES FPC vendor prefix and K7 binding example (apply after the main port patch):
+
+```sh
+git apply --check /path/to/kernel/patches/drafts/0002-dt-vendor-prefix-and-example-cleanup.patch
+git apply /path/to/kernel/patches/drafts/0002-dt-vendor-prefix-and-example-cleanup.patch
+```
+
+The DSI Host PM patch `0001-msm-dsi-host-runtime-pm-unwind.patch` is a separate draft and is not part of the baseline port patch. Do not apply it to a release tree until its code review and developer sign-off are complete.
 
 ## Validation status
 
 - Kernel Image and modules were previously built successfully; see the manifest for the exact revision, release string and hashes.
 - `git diff --check` passed during the latest source audit.
-- Device-tree binding documentation validation passed for the checked bindings.
-- Full `dtbs_check` remains blocked by an internal error in the installed dtschema 2024.4; this is not reported as a pass.
+- All six project-specific `dt_binding_check` targets pass with the isolated dtschema 2024.11 environment.
+- The target SPES DTB passes `CHECK_DTBS=1` with the six project schema limits; aggregate all-ARM64 `dtbs_check` remains unrun.
+- Full unfiltered `dt-validate` still reports unrelated UFS/CoreSight schema mismatches; see Stage 142 for the exact boundary.
 - Stage 111 confirms DCS read success must return exactly one byte (`0x9D`); future ESD work must be cancelled before OFF/host shutdown and must not perform blind recovery. No worker is implemented yet.
 - Display/MDSS/DSI/PHY nodes remain disabled pending controlled hardware validation. The display path is source-audited only; no first-frame or panel operation is claimed.
 - Fingerprint scanning is intentionally skipped and FPC remains disabled.
