@@ -23,6 +23,7 @@ Target: Xiaomi Redmi Note 11 4G (SPES, Qualcomm SM6225)
 - `STAGE130-KHAJE-DSI-HW-VERSION-MAPPING.md` — maps vendor DSI controller v2.4 declaration to Mainline v2.4.0/2.4.1 handlers.
 - `STAGE131-DRM-SUSPEND-SHUTDOWN-LIFECYCLE.md` — audits DRM display shutdown before system-sleep forced PM and DPU reboot/poweroff shutdown.
 - `STAGE132-DRM-SUSPEND-RESTORE-ERROR-PATH.md` — verifies suspend snapshot/disable, resume restore ordering and shutdown failure semantics.
+- `STAGE133-DSI-HOST-PATCH-W1-CHECK.md` — records the warning-enabled DSI Host object compile result for the draft PM patch.
 - `../patches/drafts/0001-msm-dsi-host-runtime-pm-unwind.patch` — draft code patch; requires developer sign-off and has not been applied.
 
 ## Apply the source patch
@@ -127,3 +128,6 @@ The 54.7 MB kernel Image and other build outputs remain in the build workspace. 
 ### Stage 132 update
 - Added `STAGE132-DRM-SUSPEND-RESTORE-ERROR-PATH.md`: DPU prepare snapshots/disables through DRM atomic suspend, returns failure to PM, and restores saved display state in complete after device resume.
 - Shutdown uses atomic disable-all; panel DCS OFF remains best-effort if DSI transfer fails.
+
+### Stage 133 update
+- Added `STAGE133-DSI-HOST-PATCH-W1-CHECK.md`: the draft patch also compiles the DSI Host object with `W=1`, with no warnings; source was restored byte-for-byte afterward.
