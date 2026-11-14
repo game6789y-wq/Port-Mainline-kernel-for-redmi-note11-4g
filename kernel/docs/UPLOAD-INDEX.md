@@ -26,6 +26,7 @@ Target: Xiaomi Redmi Note 11 4G (SPES, Qualcomm SM6225)
 - `STAGE133-DSI-HOST-PATCH-W1-CHECK.md` — records the warning-enabled DSI Host object compile result for the draft PM patch.
 - `STAGE134-FULL-BUILD-PATCH-INTEGRATION.md` — records the initial full Image/modules integration build.
 - `STAGE135-DSI-HOST-SNAPSHOT-PM-FIX.md` — expands the patch to guard snapshot register reads and records the updated W=1/full-build verification.
+- `STAGE136-K7-MODULE-STAGING-FIX.md` — records the missing K7 `.ko` staging fix, regenerated depmod metadata and module autoload verification.
 - `../patches/drafts/0001-msm-dsi-host-runtime-pm-unwind.patch` — draft code patch; requires developer sign-off and has not been applied.
 
 ## Apply the source patch
@@ -142,3 +143,7 @@ The 54.7 MB kernel Image and other build outputs remain in the build workspace. 
 - Expanded the draft PM patch to cover `msm_dsi_host_snapshot()`; all four `pm_runtime_get_sync()` acquisitions in `dsi_host.c` are now replaced by checked `pm_runtime_resume_and_get()` paths in the draft.
 - Updated draft passes W=1 object compile and full Image/modules build (exit 0); patch was reversed and source SHA-256 matches the pre-test value.
 - Test Image/MSM module hashes and artifact limitations are recorded in `STAGE135-DSI-HOST-SNAPSHOT-PM-FIX.md`.
+
+### Stage 136 update
+- Found and corrected missing K7 panel `.ko` in the staging tree; rebuilt from unpatched source, ran `modules_install` and `depmod`.
+- Verified K7 OF alias and dependency chain with `modprobe --show-depends`; staging now has 1,681 modules and zero FPC modules.
