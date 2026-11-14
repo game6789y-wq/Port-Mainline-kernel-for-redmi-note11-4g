@@ -257,3 +257,8 @@ Stage 139 — source-matched build and DTB status (2026-11-14)
 - Image/modules build, modules_install and depmod all completed successfully from unpatched source; staging contains 1,681 modules and zero FPC modules.
 - Fresh DTB confirms MDSS, DSI0, DSI PHY and FPC status disabled.
 - No hardware boot, display test, flash or installable release.
+
+Stage 140 — reproducible build/staging helper (2026-11-14)
+- Updated build-spes.sh and SPES config fragment; helper now builds Image/modules/target DTB, installs modules, runs depmod, checks K7/REFGEN/MSM aliases and excludes FPC.
+- Added GitHub copies under kernel/scripts and kernel/config with usage guide. Script syntax check and execution passed (exit 0); 1,681 modules staged, zero FPC.
+- Build helper does not flash or create a Recovery ZIP; display DT nodes remain disabled.
