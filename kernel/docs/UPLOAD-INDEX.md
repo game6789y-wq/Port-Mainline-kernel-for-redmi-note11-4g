@@ -15,6 +15,7 @@ Target: Xiaomi Redmi Note 11 4G (SPES, Qualcomm SM6225)
 - `STAGE122-SM6225-DSI-DT-SFPB-CLOCK-AUDIT.md` — SM6225 DSI/PHY DT, optional SFPB and clock/power wiring.
 - `STAGE123-DSI-PM-PROBE-TRANSFER-AUDIT.md` — probe-time PM acquisition and transfer-preparation error propagation.
 - `STAGE124-SM6375-PHY-POWER-AUDIT.md` — SM6375 7nm PHY runtime PM, supply and power-tree audit.
+- `STAGE125-DSI-BRIDGE-POWER-SEQUENCE.md` — DSI/PHY power order, bridge failure unwind and DRM pre-enable error-propagation limits.
 
 ## Apply the source patch
 
@@ -87,3 +88,6 @@ The 54.7 MB kernel Image and other build outputs remain in the build workspace. 
 ### Stage 124 update
 - Added `STAGE124-SM6375-PHY-POWER-AUDIT.md`: 7nm V4.1 PHY configuration, PM6125 L4 0.88 V supply, separate host L18/refgen rails, and the PHY driver's already-correct Runtime-PM acquisition/unwind pattern.
 - Stock-device logs show the K7 panel and 90/60 Hz modes, but do not provide the DSI host hardware-version register value; exact host clock-ops selection remains unconfirmed.
+
+### Stage 125 update
+- Added `STAGE125-DSI-BRIDGE-POWER-SEQUENCE.md`: confirms PHY-before-host power-up, complete host-local unwind requirement, and why the void DRM pre-enable callback cannot abort the atomic commit on host power failure.
