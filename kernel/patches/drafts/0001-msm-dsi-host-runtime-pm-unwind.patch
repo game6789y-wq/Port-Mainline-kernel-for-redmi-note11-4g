@@ -135,12 +135,12 @@ spes-mainline-port.patch. It has not been applied to the kernel source.
 @@ -2620,10 +2655,13 @@
  fail_disable_clk:
  	cfg_hnd->ops->link_clk_disable(msm_host);
-+	fail_pm:
++fail_pm:
  	pm_runtime_put(&msm_host->pdev->dev);
  fail_disable_reg:
  	regulator_bulk_disable(msm_host->cfg_hnd->cfg->num_regulators,
  			       msm_host->supplies);
-+	fail_disable_sfpb:
++fail_disable_sfpb:
 +	msm_dsi_sfpb_config(msm_host, false);
  unlock_ret:
  	mutex_unlock(&msm_host->dev_mutex);
