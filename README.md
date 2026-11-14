@@ -105,7 +105,7 @@ The current build manifest and the Stage 1–140 engineering audit are maintaine
 
 ### Still pending
 
-- [x] Finish the full `Image modules dtbs` build and verify exit code `0`.
+- [x] Finish the reproducible `Image modules` + target SPES DTB build, module installation and `depmod` staging check (Stage 140).
 - [x] Rebuild and record SHA-256 for the fresh kernel `Image`.
 - [ ] Confirm that the `spes` DTB is selected by the actual device and validate the overlay.
 - [ ] Complete full Device Tree schema validation after repairing/updating the local dtschema toolchain.
@@ -233,7 +233,7 @@ The current source snapshot and engineering notes are organized under [kernel/](
 - [Package index and validation caveats](kernel/docs/UPLOAD-INDEX.md).
 - [Build manifest and SHA-256 checksums](kernel/docs/BUILD-MANIFEST.txt).
 - [K7 panel command audit](kernel/docs/k7-38-0c-0a-panel-command-audit.txt).
-- [K7 panel driver design and Stages 1–108](kernel/docs/k7-38-0c-0a-panel-driver-design.md).
+- [K7 panel driver design and Stages 1–118](kernel/docs/k7-38-0c-0a-panel-driver-design.md).
 - [SM6225 display clock/power map](kernel/docs/k7-sm6225-display-clock-power-map.md).
 - [PMIC / SC8551 port audit](kernel/docs/spes-max77729-sc8551-port-audit.md).
 - [Latest source-matched build and DTB safety status (Stage 139)](kernel/docs/STAGE139-SOURCE-MATCHED-BUILD-DTB-STATUS.md).
