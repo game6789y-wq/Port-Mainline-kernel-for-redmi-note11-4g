@@ -267,3 +267,8 @@ Build helper assets (Stage 140)
 - `kernel/scripts/build-spes.sh`: builds Image/modules/target DTB, installs modules into the release-specific staging directory, runs depmod, checks K7/REFGEN/MSM aliases and ensures no FPC modules.
 - `kernel/config/spes-android.config`: reproducible config fragment including K7, REFGEN, FT3418, MAX77729 and SC8551 modules; FPC explicitly unset.
 - `kernel/scripts/README.md`: documents workspace root, invocation and safety boundary.
+
+Stage 141 — SPES custom module autoload audit (2026-11-14)
+- Verified staged MAX77729, FT3418, SC8551, K7 and REFGEN modules with matching vermagic and OF/I2C aliases.
+- `modprobe --show-depends` resolves all five; K7 dependency chain includes DRM KMS/display helpers and CEC.
+- Metadata validation only; no device runtime test. FPC remains excluded.
