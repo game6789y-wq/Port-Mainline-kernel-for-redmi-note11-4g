@@ -247,3 +247,7 @@ Stage 137 — MSM display module autoload audit (2026-11-14)
 - Verified staged `msm.ko` OF aliases for qcom,mdss-dsi-ctrl fallback, qcom,sm6375-dsi-phy-7nm, qcom,sm6225-mdss and qcom,sm6225-dpu.
 - Confirmed K7 and REFGEN provider aliases/dependency chains in staged module metadata.
 - Metadata inspection only; no device boot/display test.
+
+Stage 138 — PMIC display power-provider audit (2026-11-14)
+- Confirmed RPM/GLINK/SMD RPM and PM6125 RPM regulator providers are built in; SPMI arbiter, PMIC MFD, PMIC GPIO and SPMI regulator drivers are built in.
+- REFGEN remains a separately staged module; no new source/build change or hardware power measurement.
