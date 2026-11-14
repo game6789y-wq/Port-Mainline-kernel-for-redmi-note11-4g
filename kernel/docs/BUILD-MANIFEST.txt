@@ -157,3 +157,27 @@ Stage 118 — static shutdown/unbind lifecycle audit (2026-11-14)
 - Confirmed the MIPI-DSI driver API supports a shutdown callback; K7 currently has no callback and its remove path powers down GPIO/reset without sending DCS OFF.
 - A candidate shutdown hook is documented but deliberately not implemented pending verification of DSI host runtime-PM state during system shutdown.
 - No source change, rebuild, or hardware test. MDSS/DSI0/DSI PHY remain disabled; FPC remains disabled.
+
+Stage 119–120 — static DSI Host Runtime-PM and shutdown audit (2026-11-14)
+- Documented shutdown callback ordering and DSI host power gate behavior.
+- Confirmed `pm_runtime_get_sync()` increments usage count even when resume fails; `pm_runtime_resume_and_get()` is available in this tree.
+- No source change, rebuild or hardware test. MDSS/DSI0/DSI PHY remain disabled; FPC remains disabled.
+
+Stage 121 — DSI Host power-on unwind audit (2026-11-14)
+- Audited regulator, PM reference and link-clock failure cleanup.
+- Generic SFPB cleanup observations later qualified by Stage 122: SPES DTS has no `syscon-sfpb` property, so SFPB is not active for this target.
+- No source change, rebuild or hardware test.
+
+Stage 122 — SM6225 DSI DT/SFPB/clock audit (2026-11-14)
+- Confirmed DSI0 and SM6375 PHY addresses, clock/OPP/power-domain wiring, and optional SFPB absence in the Qualcomm DTS tree.
+- No source/DT change, rebuild or hardware test.
+
+Stage 123 — DSI PM probe and transfer audit (2026-11-14)
+- Audited `dsi_get_config()`, runtime-PM probe setup/cleanup, and command transfer preparation.
+- Corrected Stage 120: `msm_dsi_host_xfer_prepare()` returns int and callers check it; its current PM/rate/enable errors are ignored.
+- No source change, rebuild or hardware test.
+
+Stage 124 — SM6375 DSI PHY power audit (2026-11-14)
+- Confirmed SM6375 7nm PHY V4.1 configuration and PM6125 L4 0.88 V supply; DSI host L18 and REFGEN rails are separate.
+- PHY runtime-PM acquisition and unwind already use `pm_runtime_resume_and_get()`; this is the model for the DSI Host fix.
+- No source/DT change, rebuild or hardware test. MDSS/DSI0/DSI PHY remain disabled; FPC remains disabled.
