@@ -61,12 +61,12 @@ The priority is to establish correct hardware support and a reproducible kernel 
 | Pinned source revision | [`c545b9e890d723b5dd0beb6a7a067a0e16088e65`](https://github.com/W-Floyd/linux/commit/c545b9e890d723b5dd0beb6a7a067a0e16088e65) |
 | Kernel version | `7.3.0-rc4` |
 | ARM64 cross-compiler | GCC / AArch64 |
-| Full `Image modules dtbs` build | **Completed successfully — exit code 0** (2026-11-13 16:13 UTC) |
-| Kernel `Image` | Fresh build output from 2026-11-13 16:13 UTC; SHA-256 recorded below; not yet uploaded |
-| `spes` DTB | Compiled successfully; installed DTBO/overlay selection not verified |
-| FT3418 touchscreen module | Built with `W=1`; no on-device test |
-| FPC1020 platform module | Built with `W=1`; platform resources only; no SPI/TEE/HAL implementation or device test |
-| Redmi Note 11 boot test | Not performed |
+| Full kernel `Image modules` build | **Completed successfully — exit code 0** (latest recorded build) |
+| Kernel `Image` | Build output present; SHA-256 `de1d6ef64d1870b674c831d90e0c0814cb19351e981aa1f8dfdccbfe96522266` |
+| `spes` DTB | Latest target build passed; SHA-256 `4eae7c455a7572ac877785d02b79f745c78dc7f63189b57ca32a48380889ff64` |
+| K7 38-0C-0A display bridge | Driver built; 90Hz fixed mode only; no hardware test |
+| Fingerprint | **Intentionally skipped / disabled**; no fingerprint scanning, TEE or HAL work in this porting phase |
+| Redmi Note 11 boot test | Not performed; MDSS, DSI0 and DSI PHY remain disabled in the board DT |
 | Evolution X Android 16 compatibility | Not established |
 | Flashable package | Not available |
 
@@ -77,36 +77,41 @@ The priority is to establish correct hardware support and a reproducible kernel 
 - [x] Mainline development source and cross-compilation workspace prepared.
 - [x] Xiaomi SM6225 vendor sources inspected as hardware reference.
 - [x] Initial `spes` Device Tree source added to the mainline tree.
-- [x] Full `Image modules dtbs` build completed with exit code 0; no compiler/linker errors found in the build log.
+- [x] Kernel `Image` and module builds completed successfully (exit code 0).
+- [x] K7 38-0C-0A panel bridge driver and dormant board display graph added.
+- [x] SM6375 DSI PHY / PLL, DSI clock path, regulator and power-domain dependencies audited.
+- [x] DSI DSC-adjusted clock estimate corrected; 90Hz remains an unvalidated analytical target.
 
-### Built artifacts (experimental)
+### Latest build artifacts and validation
 
-The following files were compiled and copied to [`prebuilt/experimental/`](prebuilt/experimental/). They are **individual build artifacts, not a complete kernel image or installation package**.
+| Artifact | SHA-256 | Status |
+|---|---|---|
+| Kernel `Image` | `de1d6ef64d1870b674c831d90e0c0814cb19351e981aa1f8dfdccbfe96522266` | Build output; not boot-tested |
+| `sm6225-xiaomi-spes.dtb` | `4eae7c455a7572ac877785d02b79f745c78dc7f63189b57ca32a48380889ff64` | DTB build passed; display graph remains dormant |
+| `panel-k7-38-0c-0a.ko` | `8f092d6c81f90e2f818402474bdef8d2f9f8f62abbc5658d3cd76f4c97e525a0` | Module build passed; no hardware test |
 
-| Artifact | Size | Build / test status |
-|---|---:|---|
-| [`focaltech-ft3418.ko`](prebuilt/experimental/focaltech-ft3418.ko) | 80,576 bytes | Module build with `W=1` and checkpatch passed; hardware not tested |
-| [`fpc1020-platform.ko`](prebuilt/experimental/fpc1020-platform.ko) | 99,448 bytes | Module build with `W=1` and checkpatch passed; platform resource layer only |
-| [`sm6225-xiaomi-spes.dtb`](prebuilt/experimental/sm6225-xiaomi-spes.dtb) | 62,144 bytes | DTB compilation passed; active device overlay not verified |
+**Display engineering notes:** the active stock panel is K7 38-0C-0A, 1080×2400. The port currently targets a fixed 90Hz mode. The corrected Mainline DSI host estimate for the DSC mode is approximately 136.581MHz byte clock and 1.093Gbps per lane; these are calculated values, not measurements. PLL lock, first frame, brightness and ESD behavior have not been validated on the phone.
 
-See [artifact README](prebuilt/experimental/README.md) for SHA-256 checksums and limitations.
+**Validation caveat:** binding documentation validation passed with `dt-doc-validate`. Full `dtbs_check` remains blocked by an internal error in the installed dtschema 2024.4 (`AttributeError: 'bool' object has no attribute 'pop'`), so full schema validation is not claimed. `git diff --check` passed.
 
-**Latest build verification (2026-11-13 16:13 UTC):** full `Image modules dtbs` completed with exit code `0`. Kernel `Image` size: 54,770,176 bytes. SHA-256: `255ac9d2564056237c434b3051b342e990aee52fb4b062384a9d1d6b591be47e`. The DTB target also returned exit code `0`; its output was unchanged (62,144 bytes; SHA-256 `0d9bb6dd130003031f82503e632290ba14c51973cac4fedb5c4cfdd87f4c6cbe`). 1,679 `.ko` files are present in the build output tree. The fresh `Image` has not yet been uploaded to this repository. None of these outputs has been boot-tested; do not flash.
+The latest build manifest and engineering audit are maintained in the development workspace. No Recovery ZIP, installable package or tested release is available.
 
 ### Still pending
 
 - [x] Finish the full `Image modules dtbs` build and verify exit code `0`.
 - [x] Rebuild and record SHA-256 for the fresh kernel `Image`.
 - [ ] Confirm that the `spes` DTB is selected by the actual device and validate the overlay.
+- [ ] Complete full Device Tree schema validation after repairing/updating the local dtschema toolchain.
 - [ ] Validate board-level regulators, pinctrl, storage and interrupt mappings.
-- [ ] Complete display/DRM panel, Wi-Fi firmware/calibration, Bluetooth UART and charger integration.
+- [ ] Validate the K7 panel on hardware: regulator sequencing, DSI PLL lock, DSC PPS, first frame, brightness and ESD.
+- [ ] Complete Wi-Fi firmware/calibration, Bluetooth UART and charger integration.
 - [ ] Bring up USB, audio and remaining sensors.
 - [ ] Investigate Android 16 / Evolution X kernel and boot-image integration.
 - [ ] Perform controlled boot testing with a verified recovery path.
 
 </details>
 
-> **Status is intentionally conservative:** a successful compile does not prove that the Redmi Note 11 DTB or kernel is ready to boot.
+> **Status is intentionally conservative:** successful compilation and static driver audits do not prove that the Redmi Note 11 DTB or kernel is ready to boot.
 
 ## 🧩 Technical approach
 
@@ -131,10 +136,10 @@ See [artifact README](prebuilt/experimental/README.md) for SHA-256 checksums and
 ## 🗺️ Roadmap
 
 - [x] **Phase 0 — Workspace:** source, toolchain and initial build environment.
-- [ ] **Phase 1 — Kernel build:** produce and verify a complete ARM64 kernel image.
+- [x] **Phase 1 — Kernel build:** produce and verify a complete ARM64 kernel image (build-only; no device boot).
 - [ ] **Phase 2 — Device Tree:** complete and validate the `spes` DTB.
 - [ ] **Phase 3 — Core platform:** storage, regulators, pinctrl, clocks and USB.
-- [ ] **Phase 4 — User interface:** display and touchscreen.
+- [ ] **Phase 4 — User interface:** validate K7 display and touchscreen on hardware.
 - [ ] **Phase 5 — Peripherals:** audio, sensors, camera, connectivity and power management.
 - [ ] **Phase 6 — Android integration:** assess Evolution X Android 16 compatibility.
 - [ ] **Phase 7 — Device testing:** controlled boot tests, logs and recovery validation.
