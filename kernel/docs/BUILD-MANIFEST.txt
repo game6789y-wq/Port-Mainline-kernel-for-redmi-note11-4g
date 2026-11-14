@@ -181,3 +181,8 @@ Stage 124 — SM6375 DSI PHY power audit (2026-11-14)
 - Confirmed SM6375 7nm PHY V4.1 configuration and PM6125 L4 0.88 V supply; DSI host L18 and REFGEN rails are separate.
 - PHY runtime-PM acquisition and unwind already use `pm_runtime_resume_and_get()`; this is the model for the DSI Host fix.
 - No source/DT change, rebuild or hardware test. MDSS/DSI0/DSI PHY remain disabled; FPC remains disabled.
+
+Stage 125 — DSI bridge power sequence audit (2026-11-14)
+- Confirmed PHY-before-host power-up, host-local error unwind responsibility, and host/PHY teardown order.
+- Identified DRM void pre-enable callback limitation: host power-on errors are logged but cannot abort the atomic commit; the K7 transfer gate must remain enforced.
+- No source/DT change, rebuild or hardware test. MDSS/DSI0/DSI PHY remain disabled; FPC remains disabled.
