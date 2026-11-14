@@ -196,3 +196,8 @@ Stage 127 — DSI Host PM patch object compile (2026-11-14)
 - Temporarily applied the draft patch and compiled `drivers/gpu/drm/msm/dsi/dsi_host.o` successfully (exit 0).
 - Reversed the patch and verified the source file SHA-256 was identical before/after.
 - Object-only compile; no full Image/modules build or hardware test. Patch remains a draft and unapplied.
+
+Stage 128 — Khaje REFGEN compatibility audit (2026-11-14)
+- Compared vendor `qcom,refgen-kona-regulator` behavior with Mainline `qcom,sm8250-refgen-regulator`: both enable bit 0 at offset 0x80 and clear it on disable.
+- Confirmed the Mainline REFGEN module is built and staged; vendor proxy-consumer self-reference is not reproduced because Mainline DSI Host consumes REFGEN directly.
+- No source/DT change, new build or hardware test.
