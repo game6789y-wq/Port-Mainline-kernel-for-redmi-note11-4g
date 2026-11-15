@@ -319,3 +319,11 @@ Stage 148–149 SC8551 protection and Mainline driver audit:
 - No stock boot/vendor_boot/recovery image or Recovery ZIP/installer is present in the workspace. No flash or hardware test.
 
 Stage 153 on-device evidence (user-provided, read-only): codename `spes`; fingerprint `Redmi/spes_global/spes:13/TKQ1.221114.001/V14.0.5.0.TGCMIXM:user/release-keys`; Android release property 16; active slot `_a`; A/B `boot`, `vendor_boot`, `dtbo`, `vbmeta`, `vbmeta_system`; no dedicated `recovery` link in supplied partition list; TWRP/OrangeFox version properties empty. dmesg shows live Vendor `[sc8551-STANDALONE]` and separate MAX77729 PD detach logs. Mainline currently only has read-only SC8551 ID driver. Existing Image/DTB hashes recorded in Stage153; latest build remains unverified. No flash/ZIP yet.
+
+
+Stage 154 — boot and recovery image audit (2026-11-15)
+- Inspected the user-supplied 128 MiB boot_a and 96 MiB vendor_boot_a images read-only; hashes are recorded in STAGE154-BOOT-AND-RECOVERY-IMAGE-AUDIT.md.
+- boot_a is header v3 with a valid gzip kernel component and an LZ4 legacy ramdisk containing 5,330 CPIO entries. Recovery properties and binary/config evidence identify an OrangeFox (TWRP-derived) recovery environment, not a clean factory Android boot ramdisk.
+- vendor_boot_a is header v3; its 2,697-byte vendor ramdisk decompresses to a small fstab CPIO. Its DTB payload contains 12 FDT variants, including Bengal 1Gb/2Gb board IDs 0x0303/0x0403. Runtime board-ID selection remains unknown.
+- Embedded vendor_boot hash descriptor matches the uploaded bytes; boot_a descriptor does not. Neither result establishes the top-level AVB chain or bootloader state.
+- No source edits, partition writes, flashing, kernel build or Recovery ZIP. Build remains stopped; installer design is blocked on runtime DT identity, full slot layout and normal-boot/recovery-path confirmation.
