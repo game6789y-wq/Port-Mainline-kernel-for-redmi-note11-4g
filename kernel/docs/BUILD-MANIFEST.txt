@@ -327,3 +327,10 @@ Stage 154 — boot and recovery image audit (2026-11-15)
 - vendor_boot_a is header v3; its 2,697-byte vendor ramdisk decompresses to a small fstab CPIO. Its DTB payload contains 12 FDT variants, including Bengal 1Gb/2Gb board IDs 0x0303/0x0403. Runtime board-ID selection remains unknown.
 - Embedded vendor_boot hash descriptor matches the uploaded bytes; boot_a descriptor does not. Neither result establishes the top-level AVB chain or bootloader state.
 - No source edits, partition writes, flashing, kernel build or Recovery ZIP. Build remains stopped; installer design is blocked on runtime DT identity, full slot layout and normal-boot/recovery-path confirmation.
+
+
+Stage 155 — runtime Khaje DTB match audit (2026-11-15)
+- User-supplied live device tree identifies SPES KHAJE IDP, compatible qcom,khaje-idp/qcom,khaje/qcom,idp, MSM ID 0x206:0x10000 and board ID 0x20022:0.
+- Parsed all 12 vendor_boot DTB candidates. Candidate 9 (Khaje, qcom,khaje) is the only exact MSM-ID match; its embedded board-id is 0:0, so final DTB/overlay selection is not yet proven.
+- The visible partition list contains boot/vendor_boot/dtbo/vbmeta A/B but no init_boot or dedicated recovery link. Bootmode remains unknown and SDK 36 conflicts with the Android 13-style fingerprint label.
+- Next: read-only inspect active dtbo_a table and board overlays. No build, source/DT change, partition write, flash or Recovery ZIP.
