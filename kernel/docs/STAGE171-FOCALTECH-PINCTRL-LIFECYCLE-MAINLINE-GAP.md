@@ -72,3 +72,10 @@ This is a design checklist, not an approved patch. No values should be applied t
 ## Current status
 
 The SM6225 TLMM controller and GPIO pin descriptions are present in the Mainline source (Stage170). The FocalTech candidate remains isolated and must not be considered production-ready. No build or flash is authorized by this stage.
+
+
+## Additional verification — vendor feature flags and call order
+
+A follow-up search confirmed that the vendor configuration sets both `FTS_PINCTRL_EN=1` and `FTS_POWER_SOURCE_CUST_EN=1`. The probe's custom power initialization calls `fts_pinctrl_init()`, then `fts_pinctrl_select_normal()`, before enabling the power source. The suspend path selects the suspend pinctrl state before disabling power; resume selects the normal state before enabling power. The exit path selects the release state before power-off.
+
+This confirms that the vendor pinctrl lifecycle is compiled in and actively called in the inspected configuration, rather than being unused helper code. The vendor init function's return value is not checked at its call site, so the mere presence of the calls does not prove pinctrl setup succeeded at runtime.
